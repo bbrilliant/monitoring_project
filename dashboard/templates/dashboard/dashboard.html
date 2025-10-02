@@ -19,6 +19,8 @@
             Dernière mise à jour : en attente...
         </p>
         <button class="btn btn-primary btn-sm" onclick="loadData()">Rafraîchir maintenant</button>
+        <button class="btn btn-success btn-sm" href="{% url 'admin:index' %}">Admin</button>
+    </div>
     </div>
 
     <!-- Tableau des APIs -->
@@ -39,7 +41,7 @@
     <!-- Graphique -->
     <div class="card mt-5 shadow-sm">
         <div class="card-body">
-            <h5 class="card-title text-center">Comparaison Espace Disque</h5>
+            <h5 class="card-title text-center">💾 Comparaison Espace Disque</h5>
             <canvas id="diskChart" height="120"></canvas>
         </div>
     </div>
