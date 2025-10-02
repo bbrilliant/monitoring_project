@@ -2,9 +2,9 @@ import requests
 
 def check_api_health(api_url):
     try:
-        response = requests.get(api_url, timeout=5)
+        response = requests.get(api_url, timeout=5, verify=False)
         data = response.json()
-        print(data)
+        
 
         return {
             "status": data.get("status", "UNKNOWN"),
