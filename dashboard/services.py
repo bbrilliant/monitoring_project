@@ -4,6 +4,7 @@ def check_api_health(api_url):
     try:
         response = requests.get(api_url, timeout=5)
         data = response.json()
+        print(data)
 
         return {
             "status": data.get("status", "UNKNOWN"),
