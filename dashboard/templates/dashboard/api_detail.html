@@ -1,9 +1,9 @@
- {% load static %}
+{% load static %}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard - Monitoring APIs - Vue Globale</title>
+    <title>Détails - {{ api.name }}</title>
     <link href="{% static 'dashboard/css/bootstrap.min.css' %}" rel="stylesheet">
     <link href="{% static 'dashboard/css/style.css' %}" rel="stylesheet">
 </head>
@@ -18,9 +18,8 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ms-auto">
-        <!-- Admin -->
         <li class="nav-item">
-          <button class="btn btn-success btn-sm"><a class="nav-link active" href="/admin/">Admin</a>
+          <a class="btn btn-success btn-sm" href="/admin/">Admin</a>
         </li>
       </ul>
     </div>
@@ -29,77 +28,53 @@
 
 <!-- CONTENU PRINCIPAL -->
 <div class="container py-2">
-   <div class="row">
-  <div class="col-sm-6 mb-3 mb-sm-0">
-    <div class="card   text-bg-light mb-3">
-      <div class="card-body">
-        <h5 class="card-title">API - STATISTICS</h5>
-          <div class="card text-center shadow-sm m-2">
-            <div class="card-body">
-              <h5 class="card-title">TOTAL APIs</h5>
-              <p class="display-6" style="font-weight: bold">{{ stats.total }}</p>
-            </div>
-          </div>
-          <div class="card text-center text-bg-success m-2">
-                <div class="card-body">
-                    <h5 class="card-title">UP</h5>
-                    <p class="display-6" style="font-weight: bold">{{ stats.up }}</p>
-                </div>
-          </div>
-          <div class="card text-center text-bg-danger m-2">
-            <div class="card-body">
-              <h5 class="card-title">DOWN</h5>
-              <p class="display-6" style="font-weight: bold">{{ stats.down }}</p>
-            </div>
-          </div>
-      </div>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>Détails de l'API : {{ api.name }}</h3>
+        <p id="lastUpdate" class="text-muted fst-italic m-0">Dernière mise à jour : en attente...</p>
+        <button class="btn btn-primary btn-sm" onclick="loadData()">Rafraîchir maintenant</button>
     </div>
-  </div>
-  <div class="col-sm-6">
-    <div class="card">
-      <div class="card-body">
-        <h5 class="card-title text-danger">APIs DOWN</h5>
-        {% if down_apis %}
-        <ul class="list-group">
-            {% for api in down_apis %}
-                <li class="list-group-item list-group-item-danger">
-                    <a href="{% url 'api_detail' api.name %}" class="fw-bold text-dark">
-                      {{ api.name }}
-                    </a>
-
-                    <br>
-                    {% if api.free and api.total %}
-                        Stockage : {{ api.free }} Go libres / {{ api.total }} Go
-                    {% else %}
-                      Stockage : Non disponible
-                    {% endif %}
-                </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p class="text-success">Toutes les APIs sont UP !</p>
-    {% endif %}
-      </div>
-    </div>
-  </div>
-</div>
-    
 </div>
 
+<!-- Tableau -->
+<div class="container">
+    <table id="apiTable" class="table table-bordered table-striped shadow-sm">
+        <thead class="table-dark">
+            <tr>
+                <th>Service</th>
+                <th>URL</th>
+                <th>Statut API</th>
+                <th>Statut Stockage</th>
+                <th>Total (Go)</th>
+                <th>Libre (Go)</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <!-- Graphique -->
+    <div class="card mt-5 shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title text-center">Etat du disque</h5>
+            <canvas id="diskChart" height="120"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- SCRIPTS -->
+<script src="{% static 'dashboard/js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'dashboard/js/chart.umd.min.js' %}"></script>
 <script>
     let chart;
 
-    // Fonction utilitaire pour l'heure
     function getFormattedTime() {
         const now = new Date();
         return now.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
     }
 
     async function loadData() {
-        const response = await fetch("/api/data/");
+        const response = await fetch("/api/data/{{ api.id }}/");
         const apis = await response.json();
 
-        // --- Mise à jour du tableau ---
         const tbody = document.querySelector("#apiTable tbody");
         tbody.innerHTML = "";
         apis.forEach(api => {
@@ -118,14 +93,11 @@
                 </tr>`;
         });
 
-        // --- Mise à jour du graphique ---
         const labels = apis.map(api => api.name);
         const free = apis.map(api => (api.disk_free / (1024**3)).toFixed(2));
         const used = apis.map(api => ((api.disk_total - api.disk_free) / (1024**3)).toFixed(2));
 
-        if (chart) {
-            chart.destroy();
-        }
+        if (chart) chart.destroy();
 
         const ctx = document.getElementById("diskChart").getContext("2d");
         chart = new Chart(ctx, {
@@ -140,20 +112,12 @@
             options: { responsive: true }
         });
 
-        // --- Mettre à jour le compteur ---
         document.getElementById("lastUpdate").innerText =
             "Dernière mise à jour : " + getFormattedTime();
     }
 
-    // Charger au démarrage
     loadData();
-
-    // Rafraîchir toutes les 5 minutes (300 000 ms)
     setInterval(loadData, 300000);
 </script>
-
-<!-- JS -->
-<script src="{% static 'dashboard/js/bootstrap.bundle.min.js' %}"></script>
-<script src="{% static 'dashboard/js/chart.umd.min.js' %}"></script>
 </body>
 </html>

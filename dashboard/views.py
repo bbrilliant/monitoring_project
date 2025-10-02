@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 from django.http import JsonResponse
 from .models import MonitoredAPI
 from .services import check_api_health
@@ -37,10 +37,24 @@ def dashboard(request):
                 up_count += 1
             else:
                 down_count += 1
-                down_apis.append({(api.name),(api.url)})
+                # extraire stockage si dispo
+                disk = data.get("details", {}).get("diskSpace", {}).get("details", {})
+                free = round(disk.get("free", 0) / (1024**3), 2)  # en Go
+                total = round(disk.get("total", 0) / (1024**3), 2)  # en Go
+                down_apis.append({
+                    "name": api.name,
+                    "url": api.url,
+                    "free": free,
+                    "total": total,
+                })
         except Exception:
             down_count += 1
-            down_apis.append({(api.name),(api.url)})
+            down_apis.append({
+                "name": api.name,
+                "url": api.url,
+                "free": None,
+                "total": None,
+            })
 
     stats = {
         "total": total_apis,
@@ -52,3 +66,37 @@ def dashboard(request):
         "stats": stats,
         "down_apis": down_apis,
     })
+    
+def api_detail(request, name):
+    api = get_object_or_404(MonitoredAPI, name=name)
+    return render(request, "dashboard/api_detail.html", {"api": api})
+
+def api_detail_data(request, name):
+    api = get_object_or_404(MonitoredAPI, name=name)
+
+    try:
+        response = requests.get(api.url, timeout=5, verify=False)
+        data = response.json()
+        status = data.get("status", "DOWN")
+
+        disk = data.get("details", {}).get("diskSpace", {}).get("details", {})
+        disk_free = disk.get("free", 0)
+        disk_total = disk.get("total", 0)
+        disk_status = data.get("details", {}).get("diskSpace", {}).get("status", "N/A")
+
+    except Exception:
+        status = "DOWN"
+        disk_free = 0
+        disk_total = 0
+        disk_status = "N/A"
+
+    api_data = {
+        "name": api.name,
+        "url": api.url,
+        "status": status,
+        "disk_status": disk_status,
+        "disk_total": disk_total,
+        "disk_free": disk_free,
+    }
+
+    return JsonResponse([api_data], safe=False)
