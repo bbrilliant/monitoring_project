@@ -60,7 +60,7 @@
                 <ul class="list-group">
                   {% for api in down_apis %}
                     <li class="list-group-item list-group-item-danger">
-                      <a href="{% url 'api_detail' api.name %}" class="fw-bold text-dark">{{ api.name }}</a>
+                      <a href="{% url 'api_detail' api.url|urlencode %}" class="fw-bold text-dark">{{ api.name }}</a>
                       <br />
                       {% if api.disk_total and api.disk_free %}
                         Stockage : {{ api.disk_free|floatformat:2 }} Go libres / {{ api.disk_total|floatformat:2 }} Go

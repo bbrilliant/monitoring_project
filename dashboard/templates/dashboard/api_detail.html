@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <title>Détails API - {{ api.name }}</title>
     <link href="{% static 'dashboard/css/bootstrap.min.css' %}" rel="stylesheet">
-    <link href="{% static 'dashboard/css/style.css' %}" rel="stylesheet">
     <script src="{% static 'dashboard/js/chart.umd.min.js' %}"></script>
 </head>
 <body class="bg-light">
@@ -86,7 +85,6 @@
     const total = {{ api.disk_total|default:0 }};
     const free = {{ api.disk_free|default:0 }};
     const used = total - free;
-
     const ctx = document.getElementById("storageChart").getContext("2d");
     new Chart(ctx, {
         type: "doughnut",

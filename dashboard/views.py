@@ -1,3 +1,4 @@
+import urllib
 from django.shortcuts import get_object_or_404, render
 from django.http import JsonResponse
 from .models import MonitoredAPI
@@ -65,13 +66,19 @@ def dashboard(request):
         "down_apis": down_apis,
     })
     
-def api_detail(request, name):
-    api = get_object_or_404(MonitoredAPI, name=name)
+def api_detail(request, encoded_url):
+    api_url = urllib.parse.unquote(encoded_url)  # décoder l’URL
+    api_data = check_api_health(api_url)  # ta fonction pour vérifier l'état
+    api = {
+        "name": api_url,  # ou un champ Name si dispo
+        "url": api_url,
+        **api_data
+    }
     return render(request, "dashboard/api_detail.html", {"api": api})
 
 
-def api_detail_data(request, name):
-    api = get_object_or_404(MonitoredAPI, name=name)
+def api_detail_data(request, url):
+    api = get_object_or_404(MonitoredAPI, url=url)
 
     try:
         response = requests.get(api.url, timeout=5, verify=False)

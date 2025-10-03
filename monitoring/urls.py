@@ -21,7 +21,7 @@ from dashboard import views
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", views.dashboard, name="dashboard"),
-    path("api/<str:name>/", views.api_detail, name="api_detail"),  # nouvelle page détail
+    path("api/<path:encoded_url>/", views.api_detail, name="api_detail"),
     path("api/data/", views.api_data, name="api_data"),
     
 ]
