@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h3 class="text-success">APIs UP</h3>
+    {% if apis %}
+    <ul class="list-group">
+        {% for api in apis %}
+            <li class="list-group-item list-group-item-success">
+                <a href="{% url 'api_detail' api.url|urlencode %}" class="fw-bold text-dark">
+                    {{ api.name }}
+                </a>
+                <br>
+                {% if api.disk_status != "N/A" %}
+                    Stockage : {{ api.disk_status }}
+                    ({{ api.disk_free|default:0 }} / {{ api.disk_total|default:0 }})
+                {% else %}
+                    Stockage : Non disponible
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p class="text-danger">Aucune API UP détectée</p>
+    {% endif %}
+</div>
+{% endblock %}

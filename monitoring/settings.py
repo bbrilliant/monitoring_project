@@ -52,6 +52,7 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'monitoring.urls'
 
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',

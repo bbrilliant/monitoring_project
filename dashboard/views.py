@@ -106,3 +106,21 @@ def api_detail_data(request, url):
     }
 
     return JsonResponse([api_data], safe=False)
+
+def api_up_list(request):
+    apis_config = [
+        {"name": "Service A", "url": "http://localhost:8080/actuator/health"},
+        {"name": "Service B", "url": "http://localhost:8081/actuator/health"},
+    ]
+
+    apis = []
+    for api in apis_config:
+        status_data = check_api_health(api["url"])
+        if status_data["status"] == "UP":
+            apis.append({
+                "name": api["name"],
+                "url": api["url"],
+                **status_data
+            })
+
+    return render(request, "dashboard/api_up_list.html", {"apis": apis})
