@@ -71,6 +71,7 @@ def api_detail(request, name):
     api = get_object_or_404(MonitoredAPI, name=name)
     return render(request, "dashboard/api_detail.html", {"api": api})
 
+
 def api_detail_data(request, name):
     api = get_object_or_404(MonitoredAPI, name=name)
 

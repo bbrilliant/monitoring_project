@@ -5,119 +5,97 @@
     <meta charset="UTF-8">
     <title>Détails - {{ api.name }}</title>
     <link href="{% static 'dashboard/css/bootstrap.min.css' %}" rel="stylesheet">
-    <link href="{% static 'dashboard/css/style.css' %}" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
 </head>
 <body class="bg-light">
 
 <!-- NAVBAR -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-  <div class="container container-fluid">
-    <a class="navbar-brand" href="/">API MONITORING DASHBOARD</a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav ms-auto">
-        <li class="nav-item">
-          <a class="btn btn-success btn-sm" href="/admin/">Admin</a>
-        </li>
-      </ul>
-    </div>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
+  <div class="container">
+    <a class="navbar-brand fw-bold" href="/">⚡ API MONITORING</a>
+    <a href="/admin/" class="btn btn-outline-light btn-sm ms-auto">
+        <i class="bi bi-gear-fill"></i> Admin
+    </a>
   </div>
 </nav>
 
-<!-- CONTENU PRINCIPAL -->
-<div class="container py-2">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3>Détails de l'API : {{ api.name }}</h3>
-        <p id="lastUpdate" class="text-muted fst-italic m-0">Dernière mise à jour : en attente...</p>
-        <button class="btn btn-primary btn-sm" onclick="loadData()">Rafraîchir maintenant</button>
-    </div>
-</div>
+<div class="container py-4">
+  <div class="row g-4">
 
-<!-- Tableau -->
-<div class="container">
-    <table id="apiTable" class="table table-bordered table-striped shadow-sm">
-        <thead class="table-dark">
-            <tr>
-                <th>Service</th>
-                <th>URL</th>
-                <th>Statut API</th>
-                <th>Statut Stockage</th>
-                <th>Total (Go)</th>
-                <th>Libre (Go)</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
+    <!-- Infos -->
+    <div class="col-md-6">
+      <div class="card shadow-sm border-0">
+        <div class="card-body">
+          <h4 class="mb-3"><i class="bi bi-info-circle"></i> Informations</h4>
+          <p><strong>Nom :</strong> {{ api.name }}</p>
+          <p><strong>URL :</strong> <a href="{{ api.url }}" target="_blank">{{ api.url }}</a></p>
+          <p><strong>Type :</strong> 
+            <span class="badge bg-secondary">{{ api.type|default:"HTTP" }}</span>
+          </p>
+          <p><strong>Statut API :</strong>
+            {% if api.status == "UP" %}
+              <span class="badge bg-success">UP</span>
+            {% elif api.status == "DOWN" %}
+              <span class="badge bg-danger">DOWN</span>
+            {% else %}
+              <span class="badge bg-warning text-dark">{{ api.status }}</span>
+            {% endif %}
+          </p>
+          <p><strong>Stockage :</strong>
+            {% if api.disk_status == "UP" %}
+              <span class="badge bg-success">OK</span>
+            {% elif api.disk_status == "N/A" %}
+              <span class="badge bg-secondary">N/A</span>
+            {% else %}
+              <span class="badge bg-danger">Issue</span>
+            {% endif %}
+          </p>
+        </div>
+      </div>
+    </div>
 
     <!-- Graphique -->
-    <div class="card mt-5 shadow-sm">
+    <div class="col-md-6">
+      <div class="card shadow-sm border-0">
         <div class="card-body">
-            <h5 class="card-title text-center">Etat du disque</h5>
-            <canvas id="diskChart" height="120"></canvas>
+          <h4 class="text-center mb-3"><i class="bi bi-pie-chart-fill"></i> Stockage</h4>
+          <canvas id="storageChart" height="220"></canvas>
         </div>
+      </div>
     </div>
+  </div>
+
+  <div class="mt-4">
+    <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left"></i> Retour au Dashboard
+    </a>
+  </div>
 </div>
 
-<!-- SCRIPTS -->
-<script src="{% static 'dashboard/js/bootstrap.bundle.min.js' %}"></script>
-<script src="{% static 'dashboard/js/chart.umd.min.js' %}"></script>
 <script>
-    let chart;
+  const total = {{ api.disk_total|default:0 }};
+  const free = {{ api.disk_free|default:0 }};
+  const used = total - free;
 
-    function getFormattedTime() {
-        const now = new Date();
-        return now.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  const ctx = document.getElementById("storageChart").getContext("2d");
+  new Chart(ctx, {
+    type: "doughnut",
+    data: {
+      labels: ["Utilisé (Go)", "Libre (Go)"],
+      datasets: [{
+        data: [(used / (1024**3)).toFixed(2), (free / (1024**3)).toFixed(2)],
+        backgroundColor: ["#dc3545", "#28a745"]
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: "bottom" }
+      }
     }
-
-    async function loadData() {
-        const response = await fetch("/api/data/{{ api.id }}/");
-        const apis = await response.json();
-
-        const tbody = document.querySelector("#apiTable tbody");
-        tbody.innerHTML = "";
-        apis.forEach(api => {
-            tbody.innerHTML += `
-                <tr>
-                    <td><strong>${api.name}</strong></td>
-                    <td><a href="${api.url}" target="_blank">${api.url}</a></td>
-                    <td>${api.status === "UP" ? '<span class="badge bg-success">UP</span>' :
-                         api.status === "DOWN" ? '<span class="badge bg-danger">DOWN</span>' :
-                         '<span class="badge bg-warning text-dark">'+api.status+'</span>'}</td>
-                    <td>${api.disk_status === "UP" ? '<span class="badge bg-success">OK</span>' :
-                         api.disk_status === "N/A" ? '<span class="badge bg-secondary">N/A</span>' :
-                         '<span class="badge bg-danger">Issue</span>'}</td>
-                    <td>${(api.disk_total / (1024**3)).toFixed(2)}</td>
-                    <td>${(api.disk_free / (1024**3)).toFixed(2)}</td>
-                </tr>`;
-        });
-
-        const labels = apis.map(api => api.name);
-        const free = apis.map(api => (api.disk_free / (1024**3)).toFixed(2));
-        const used = apis.map(api => ((api.disk_total - api.disk_free) / (1024**3)).toFixed(2));
-
-        if (chart) chart.destroy();
-
-        const ctx = document.getElementById("diskChart").getContext("2d");
-        chart = new Chart(ctx, {
-            type: "bar",
-            data: {
-                labels: labels,
-                datasets: [
-                    { label: "Utilisé (Go)", data: used, backgroundColor: "#dc3545" },
-                    { label: "Libre (Go)", data: free, backgroundColor: "#28a745" }
-                ]
-            },
-            options: { responsive: true }
-        });
-
-        document.getElementById("lastUpdate").innerText =
-            "Dernière mise à jour : " + getFormattedTime();
-    }
-
-    loadData();
-    setInterval(loadData, 300000);
+  });
 </script>
+
+<script src="{% static 'dashboard/js/bootstrap.bundle.min.js' %}"></script>
 </body>
 </html>
