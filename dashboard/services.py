@@ -4,7 +4,7 @@ def check_api_health(api_url):
     try:
         response = requests.get(api_url, timeout=5, verify=False)
 
-        # Si la réponse est JSON, on essaie de l'exploiter
+        # Cas 1 : réponse JSON exploitable
         try:
             data = response.json()
             return {
@@ -14,7 +14,7 @@ def check_api_health(api_url):
                 "disk_free": data.get("details", {}).get("diskSpace", {}).get("details", {}).get("free", 0)
             }
         except ValueError:
-            # Si ce n'est pas du JSON → on regarde juste le code HTTP
+            # Cas 2 : pas du JSON → si 200 = UP (sans stockage)
             if response.status_code == 200:
                 return {
                     "status": "UP",
@@ -23,6 +23,7 @@ def check_api_health(api_url):
                     "disk_free": 0
                 }
             else:
+                # Cas 3 : autre code → DOWN
                 return {
                     "status": "DOWN",
                     "disk_status": "N/A",
@@ -31,7 +32,7 @@ def check_api_health(api_url):
                 }
 
     except requests.RequestException:
-        # En cas d'erreur de connexion
+        # Cas 4 : erreur réseau → DOWN
         return {
             "status": "DOWN",
             "disk_status": "N/A",
