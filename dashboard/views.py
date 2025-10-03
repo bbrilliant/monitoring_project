@@ -4,8 +4,6 @@ from .models import MonitoredAPI
 from .services import check_api_health
 import requests
 
-def api_dashboard(request):
-    return render(request, "dashboard/apidashboard.html")
 
 def api_data(request):
     apis = MonitoredAPI.objects.all()
