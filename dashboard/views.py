@@ -108,19 +108,37 @@ def api_detail_data(request, url):
     return JsonResponse([api_data], safe=False)
 
 def api_up_list(request):
-    apis_config = [
-        {"name": "Service A", "url": "http://localhost:8080/actuator/health"},
-        {"name": "Service B", "url": "http://localhost:8081/actuator/health"},
-    ]
+    apis_up = []
 
-    apis = []
-    for api in apis_config:
-        status_data = check_api_health(api["url"])
-        if status_data["status"] == "UP":
-            apis.append({
-                "name": api["name"],
-                "url": api["url"],
-                **status_data
-            })
+    for api in MonitoredAPI.objects.all():
+        try:
+            response = requests.get(api.url, timeout=5, verify=False)
 
-    return render(request, "dashboard/api_up_list.html", {"apis": apis})
+            if response.status_code == 200:
+                # Par défaut : UP sans stockage
+                api_data = {
+                    "name": api.name,
+                    "url": api.url,
+                    "status": "UP",
+                    "disk_status": "N/A",
+                    "disk_total": 0,
+                    "disk_free": 0,
+                }
+
+                # Si c’est du JSON, on complète avec les infos disque
+                try:
+                    data = response.json()
+                    api_data["status"] = data.get("status", "UP")
+                    api_data["disk_status"] = data.get("details", {}).get("diskSpace", {}).get("status", "N/A")
+                    api_data["disk_total"] = data.get("details", {}).get("diskSpace", {}).get("details", {}).get("total", 0)
+                    api_data["disk_free"] = data.get("details", {}).get("diskSpace", {}).get("details", {}).get("free", 0)
+                except ValueError:
+                    pass  # pas JSON, on garde juste "UP"
+
+                apis_up.append(api_data)
+
+        except requests.RequestException:
+            # API inaccessible → pas ajoutée aux UP
+            pass
+
+    return render(request, "dashboard/api_up_list.html", {"apis_up": apis_up})
