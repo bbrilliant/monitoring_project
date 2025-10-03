@@ -1,41 +1,46 @@
 import requests
 
+
+import requests
+
 def check_api_health(api_url):
     try:
         response = requests.get(api_url, timeout=5, verify=False)
 
-        # Cas 1 : réponse JSON exploitable
+        # --- Étape 1 : Vérification du code HTTP ---
+        if response.status_code == 200:
+            status = "UP"
+        else:
+            return {
+                "status": "DOWN",
+                "disk_status": "N/A",
+                "disk_total": None,
+                "disk_free": None
+            }
+
+        # --- Étape 2 : Tenter d’analyser la réponse JSON ---
         try:
             data = response.json()
             return {
-                "status": data.get("status", "UNKNOWN"),
+                "status": status,  # toujours UP car HTTP 200
                 "disk_status": data.get("details", {}).get("diskSpace", {}).get("status", "N/A"),
-                "disk_total": data.get("details", {}).get("diskSpace", {}).get("details", {}).get("total", 0),
-                "disk_free": data.get("details", {}).get("diskSpace", {}).get("details", {}).get("free", 0)
+                "disk_total": data.get("details", {}).get("diskSpace", {}).get("details", {}).get("total"),
+                "disk_free": data.get("details", {}).get("diskSpace", {}).get("details", {}).get("free")
             }
         except ValueError:
-            # Cas 2 : pas du JSON → si 200 = UP (sans stockage)
-            if response.status_code == 200:
-                return {
-                    "status": "UP",
-                    "disk_status": "N/A",
-                    "disk_total": 0,
-                    "disk_free": 0
-                }
-            else:
-                # Cas 3 : autre code → DOWN
-                return {
-                    "status": "DOWN",
-                    "disk_status": "N/A",
-                    "disk_total": 0,
-                    "disk_free": 0
-                }
+            # Réponse non JSON → stockage indisponible
+            return {
+                "status": status,
+                "disk_status": "N/A",
+                "disk_total": None,
+                "disk_free": None
+            }
 
     except requests.RequestException:
-        # Cas 4 : erreur réseau → DOWN
+        # En cas d’erreur réseau ou timeout
         return {
             "status": "DOWN",
             "disk_status": "N/A",
-            "disk_total": 0,
-            "disk_free": 0
+            "disk_total": None,
+            "disk_free": None
         }

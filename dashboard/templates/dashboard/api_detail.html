@@ -18,12 +18,11 @@
       <span class="navbar-toggler-icon"></span>
     </button>
     <ul class="navbar-nav ms-auto">
+        <!-- Admin -->
         <li class="nav-item">
-          <button class="btn btn-success btn-sm">
-            <a class="nav-link active" href="/admin/">Admin</a>
-          </button>
+          <a href="/admin/" class="btn btn-success btn-sm">Admin</a>
         </li>
-      </ul>
+    </ul>
   </div>
 </nav>
 
@@ -31,6 +30,7 @@
     <h2 class="mb-3">Détails de l’API : <strong>{{ api.name }}</strong></h2>
 
     <div class="row">
+        <!-- Informations générales -->
         <div class="col-md-6">
             <div class="card shadow-sm mb-3">
                 <div class="card-body">
@@ -47,31 +47,33 @@
                         {% endif %}
                     </p>
                     <p><strong>Statut Stockage :</strong>
-                        {% if api.disk_status == "UP" %}
-                            <span class="badge bg-success">OK</span>
-                        {% elif api.disk_status == "N/A" %}
-                            <span class="badge bg-secondary">Ignoré</span>
+                        {% if api.disk_total and api.disk_free %}
+                            {% if api.disk_status == "UP" %}
+                                <span class="badge bg-success">OK</span>
+                            {% else %}
+                                <span class="badge bg-danger">Issue</span>
+                            {% endif %}
+                            <br>
+                            {{ api.disk_free|floatformat:2 }} Go libres / {{ api.disk_total|floatformat:2 }} Go
                         {% else %}
-                            <span class="badge bg-danger">Issue</span>
+                            <span class="badge bg-secondary">Non disponible</span>
                         {% endif %}
                     </p>
                 </div>
             </div>
         </div>
 
-        <!-- Graphique stockage -->
+        <!-- Graphique stockage (affiché uniquement si infos dispo) -->
+        {% if api.disk_total and api.disk_free %}
         <div class="col-md-6">
             <div class="card shadow-sm">
                 <div class="card-body">
                     <h5 class="card-title text-center">Stockage (Go)</h5>
-                    {% if api.disk_status == "N/A" %}
-                        <p class="text-muted text-center">Stockage ignoré pour cette API</p>
-                    {% else %}
-                        <canvas id="storageChart" height="200"></canvas>
-                    {% endif %}
+                    <canvas id="storageChart" height="200"></canvas>
                 </div>
             </div>
         </div>
+        {% endif %}
     </div>
 
     <div class="mt-3">
@@ -79,7 +81,7 @@
     </div>
 </div>
 
-{% if api.disk_status != "N/A" %}
+{% if api.disk_total and api.disk_free %}
 <script>
     const total = {{ api.disk_total|default:0 }};
     const free = {{ api.disk_free|default:0 }};
