@@ -1,87 +1,87 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="fr">
-  <head>
-    <meta charset="UTF-8" />
+<head>
+    <meta charset="UTF-8">
     <title>Dashboard - Monitoring APIs - Vue Globale</title>
-    <link href="{% static 'dashboard/css/bootstrap.min.css' %}" rel="stylesheet" />
-    <link href="{% static 'dashboard/css/style.css' %}" rel="stylesheet" />
-  </head>
-  <body class="bg-light">
-    <!-- NAVBAR -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-      <div class="container container-fluid">
-        <a class="navbar-brand" href="/">API MONITORING DASHBOARD</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"><span class="navbar-toggler-icon"></span></button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-          <ul class="navbar-nav ms-auto">
-            <!-- Admin -->
-            <li class="nav-item">
-              <button class="btn btn-success btn-sm"><a class="nav-link active" href="/admin/">Admin</a></button>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </nav>
+    <link href="{% static 'dashboard/css/bootstrap.min.css' %}" rel="stylesheet">
+    <link href="{% static 'dashboard/css/style.css' %}" rel="stylesheet">
+</head>
+<body class="bg-light">
 
-    <!-- CONTENU PRINCIPAL -->
-    <div class="container py-2">
-      <div class="row">
-        <div class="col-sm-6 mb-3 mb-sm-0">
-          <div class="card text-bg-light mb-3">
-            <div class="card-body">
-              <h5 class="card-title">API - STATISTICS</h5>
-              <div class="card text-center shadow-sm m-2">
-                <div class="card-body">
-                  <h5 class="card-title">TOTAL APIs</h5>
-                  <p class="display-6 fw-bold">{{ stats.total }}</p>
-                </div>
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container">
+    <a class="navbar-brand" href="/">API MONITORING DASHBOARD</a>
+    <ul class="navbar-nav ms-auto">
+      <li class="nav-item">
+        <a class="btn btn-success btn-sm" href="/admin/">Admin</a>
+      </li>
+    </ul>
+  </div>
+</nav>
+
+<!-- CONTENU PRINCIPAL -->
+<div class="container py-4">
+   <div class="row">
+      <!-- Stats -->
+      <div class="col-sm-6 mb-3">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <h5 class="card-title">API - STATISTICS</h5>
+            <div class="card text-center shadow-sm m-2">
+              <div class="card-body">
+                <h5 class="card-title">TOTAL APIs</h5>
+                <p class="display-6 fw-bold">{{ stats.total }}</p>
               </div>
-              <div class="card text-center text-bg-success m-2">
-                <div class="card-body">
-                  <h5 class="card-title">UP</h5>
-                  <p class="display-6 fw-bold">{{ stats.up }}</p>
-                  <a href="{% url 'api_up_list' %}" class="btn btn-light btn-sm mt-2">Voir la liste</a>
-                </div>
+            </div>
+            <div class="card text-center text-bg-success m-2">
+              <div class="card-body">
+                <h5 class="card-title">UP</h5>
+                <p class="display-6 fw-bold">{{ stats.up }}</p>
+                <a href="{% url 'api_up_list' %}" class="btn btn-outline-light btn-sm">Voir la liste</a>
               </div>
-              <div class="card text-center text-bg-danger m-2">
-                <div class="card-body">
-                  <h5 class="card-title">DOWN</h5>
-                  <p class="display-6 fw-bold">{{ stats.down }}</p>
-                </div>
+            </div>
+            <div class="card text-center text-bg-danger m-2">
+              <div class="card-body">
+                <h5 class="card-title">DOWN</h5>
+                <p class="display-6 fw-bold">{{ stats.down }}</p>
               </div>
             </div>
           </div>
         </div>
-        <div class="col-sm-6">
-          <div class="card">
-            <div class="card-body">
-              <h5 class="card-title text-danger">APIs DOWN</h5>
-              {% if down_apis %}
-                <ul class="list-group">
+      </div>
+
+      <!-- APIs Down -->
+      <div class="col-sm-6">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <h5 class="card-title text-danger">APIs DOWN</h5>
+            {% if down_apis %}
+              <ul class="list-group">
                   {% for api in down_apis %}
-                    <li class="list-group-item list-group-item-danger">
-                      <a href="{% url 'api_detail' api.url|urlencode %}" class="fw-bold text-dark">{{ api.name }}</a>
-                      <br />
-                      {% if api.disk_total and api.disk_free %}
-                        Stockage : {{ api.disk_free|floatformat:2 }} Go libres / {{ api.disk_total|floatformat:2 }} Go
-                      {% else %}
-                        Stockage : Non disponible
-                      {% endif %}
-                    </li>
+                      <li class="list-group-item list-group-item-danger">
+                          <a href="{% url 'api_detail' api.url %}" class="fw-bold text-dark">
+                              {{ api.name }}
+                          </a>
+                          <br>
+                          {% if api.disk_total > 0 %}
+                              Stockage : {{ api.disk_free|floatformat:2 }} Go libres / {{ api.disk_total|floatformat:2 }} Go
+                          {% else %}
+                              Stockage : Non disponible
+                          {% endif %}
+                      </li>
                   {% endfor %}
-                </ul>
-              {% else %}
-                <p class="text-success">Toutes les APIs sont UP !</p>
-              {% endif %}
-            </div>
+              </ul>
+            {% else %}
+              <p class="text-success">Toutes les APIs sont UP !</p>
+            {% endif %}
           </div>
         </div>
       </div>
-    </div>
+   </div>
+</div>
 
-    <!-- JS -->
-    <script src="{% static 'dashboard/js/bootstrap.bundle.min.js' %}"></script>
-    <script src="{% static 'dashboard/js/chart.umd.min.js' %}"></script>
-  </body>
+<script src="{% static 'dashboard/js/bootstrap.bundle.min.js' %}"></script>
+</body>
 </html>
