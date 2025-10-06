@@ -29,6 +29,28 @@ def check_api_health(url):
                 "disk_status": disk_status
             }
 
+        elif response.status_code != 200 and response.status_code == 503:
+            
+            data = response.json()
+            if "status" in data and "disk_total" in data and "disk_free" in data:
+                disk_total = data.get("disk_total", 0)
+                disk_free = data.get("disk_free", 0)
+                disk_status = "OK"
+
+        return {
+            "status": status,
+            "disk_total": disk_total,
+            "disk_free": disk_free,
+            "disk_status": disk_status
+        }
+        
+        return {
+            "status": "DOWN",
+            "disk_total": 0,
+            "disk_free": 0,
+            "disk_status": "Indisponible"
+        }
+            
         else:
             # Code HTTP non 200 → DOWN
             return {
