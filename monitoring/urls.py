@@ -22,7 +22,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("", views.dashboard, name="dashboard"),
     path("api/<path:encoded_url>/", views.api_detail, name="api_detail"),
-    path("api/data/", views.api_data, name="api_data"),
+    #path("api/data/", views.api_data, name="api_data"),
     path("apis/up/", views.api_up_list, name="api_up_list"),
 
     

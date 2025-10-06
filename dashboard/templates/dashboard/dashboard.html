@@ -12,13 +12,20 @@
             margin-bottom: 20px;
             color: #fff;
         }
-        .stat-total { background-color: #6c757d; }
-        .stat-up { background-color: #28a745; }
-        .stat-down { background-color: #dc3545; }
+        .stat-total {
+            background-color: #6c757d; /* gris */
+        }
+        .stat-up {
+            background-color: #28a745; /* vert */
+        }
+        .stat-down {
+            background-color: #dc3545; /* rouge */
+        }
     </style>
 </head>
 <body class="bg-light">
 
+<!-- NAVBAR -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
   <div class="container-fluid">
     <a class="navbar-brand fw-bold" href="/">API MONITORING DASHBOARD</a>
@@ -29,17 +36,18 @@
   </div>
 </nav>
 
+<!-- CONTENU PRINCIPAL -->
 <div class="container py-4">
   <div class="row">
 
-    <!-- Statistiques -->
+    <!-- COLONNE GAUCHE : STATISTIQUES -->
     <div class="col-md-4 mb-3">
       <div class="card shadow-sm border-0">
         <div class="card-body text-center">
           <h5 class="card-title fw-bold text-secondary mb-4">Statistiques Générales</h5>
 
           <div class="stat-box stat-total">
-            <h6>Total APIs</h6>
+            <h6 class="text-light">Total APIs</h6>
             <p class="display-6 fw-bold">{{ stats.total }}</p>
           </div>
 
@@ -56,7 +64,7 @@
       </div>
     </div>
 
-    <!-- Liste APIs Down -->
+    <!-- COLONNE DROITE : LISTE DES APIs DOWN -->
     <div class="col-md-8">
       <div class="card shadow-sm border-0">
         <div class="card-body">
