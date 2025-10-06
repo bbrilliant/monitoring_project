@@ -6,13 +6,13 @@
     <title>Détails API - {{ api.name }}</title>
     <link href="{% static 'dashboard/css/bootstrap.min.css' %}" rel="stylesheet">
     <style>
-        .status-up {
+        {% comment %} .status-up {
             background-color: #28a745;
             color: white;
             padding: 10px 15px;
             border-radius: 8px;
             display: inline-block;
-        }
+        } {% endcomment %}
         .status-down {
             background-color: #dc3545;
             color: white;
@@ -37,9 +37,9 @@
       <p><strong>URL :</strong> {{ api.url }}</p>
 
       {% if api.status == "UP" %}
-        <p><strong>Statut :</strong> <span class="status-up">UP ✅</span></p>
+        <p><strong>Statut :</strong> <span class="status-up">UP</span></p>
       {% else %}
-        <p><strong>Statut :</strong> <span class="status-down">DOWN ❌</span></p>
+        <p><strong>Statut :</strong> <span class="status-down">DOWN</span></p>
       {% endif %}
 
       <hr>
