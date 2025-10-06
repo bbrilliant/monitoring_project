@@ -3,9 +3,8 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard - Monitoring APIs - Vue Globale</title>
+    <title>Dashboard - Monitoring APIs</title>
     <link href="{% static 'dashboard/css/bootstrap.min.css' %}" rel="stylesheet">
-    <link href="{% static 'dashboard/css/style.css' %}" rel="stylesheet">
 </head>
 <body class="bg-light">
 
@@ -13,75 +12,124 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
   <div class="container">
     <a class="navbar-brand" href="/">API MONITORING DASHBOARD</a>
-    <ul class="navbar-nav ms-auto">
-      <li class="nav-item">
-        <a class="btn btn-success btn-sm" href="/admin/">Admin</a>
-      </li>
-    </ul>
+    <div class="ms-auto">
+      <a href="/admin/" class="btn btn-success btn-sm">Admin</a>
+      <a href="{% url 'api_up_list' %}" class="btn btn-primary btn-sm">Voir APIs UP</a>
+    </div>
   </div>
 </nav>
 
-<!-- CONTENU PRINCIPAL -->
-<div class="container py-4">
-   <div class="row">
-      <!-- Stats -->
-      <div class="col-sm-6 mb-3">
-        <div class="card shadow-sm">
-          <div class="card-body">
-            <h5 class="card-title">API - STATISTICS</h5>
-            <div class="card text-center shadow-sm m-2">
-              <div class="card-body">
-                <h5 class="card-title">TOTAL APIs</h5>
-                <p class="display-6 fw-bold">{{ stats.total }}</p>
-              </div>
+<div class="container py-3">
+  <div class="row">
+    <!-- STATISTICS -->
+    <div class="col-md-6">
+      <div class="card shadow-sm mb-3">
+        <div class="card-body">
+          <h5 class="card-title">API - STATISTICS</h5>
+          <div class="d-flex justify-content-around text-center">
+            <div>
+              <h6>TOTAL</h6>
+              <p id="totalApis" class="display-6">-</p>
             </div>
-            <div class="card text-center text-bg-success m-2">
-              <div class="card-body">
-                <h5 class="card-title">UP</h5>
-                <p class="display-6 fw-bold">{{ stats.up }}</p>
-                <a href="{% url 'api_up_list' %}" class="btn btn-outline-light btn-sm">Voir la liste</a>
-              </div>
+            <div>
+              <h6 class="text-success">UP</h6>
+              <p id="upApis" class="display-6 text-success">-</p>
             </div>
-            <div class="card text-center text-bg-danger m-2">
-              <div class="card-body">
-                <h5 class="card-title">DOWN</h5>
-                <p class="display-6 fw-bold">{{ stats.down }}</p>
-              </div>
+            <div>
+              <h6 class="text-danger">DOWN</h6>
+              <p id="downApisCount" class="display-6 text-danger">-</p>
             </div>
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- APIs Down -->
-      <div class="col-sm-6">
-        <div class="card shadow-sm">
-          <div class="card-body">
-            <h5 class="card-title text-danger">APIs DOWN</h5>
-            {% if down_apis %}
-              <ul class="list-group">
-                  {% for api in down_apis %}
-                      <li class="list-group-item list-group-item-danger">
-                          <a href="{% url 'api_detail' api.url %}" class="fw-bold text-dark">
-                              {{ api.name }}
-                          </a>
-                          <br>
-                          {% if api.disk_total > 0 %}
-                              Stockage : {{ api.disk_free|floatformat:2 }} Go libres / {{ api.disk_total|floatformat:2 }} Go
-                          {% else %}
-                              Stockage : Non disponible
-                          {% endif %}
-                      </li>
-                  {% endfor %}
-              </ul>
-            {% else %}
-              <p class="text-success">Toutes les APIs sont UP !</p>
-            {% endif %}
+    <!-- APIS DOWN -->
+    <div class="col-md-6">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title text-danger">APIs DOWN</h5>
+          <div id="downApis" class="row">
+            <p class="text-muted">Chargement...</p>
           </div>
         </div>
       </div>
-   </div>
+    </div>
+  </div>
+
+  <!-- GRAPH -->
+  <div class="card shadow-sm mt-3">
+    <div class="card-body">
+      <h5 class="card-title text-center">Utilisation du stockage</h5>
+      <canvas id="diskChart" height="100"></canvas>
+    </div>
+  </div>
 </div>
 
+<!-- JS -->
 <script src="{% static 'dashboard/js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'dashboard/js/chart.umd.min.js' %}"></script>
+<script>
+let chart;
+
+async function loadApis() {
+    const response = await fetch("/api/data/");
+    const apis = await response.json();
+
+    // stats
+    document.getElementById("totalApis").innerText = apis.length;
+    document.getElementById("upApis").innerText = apis.filter(api => api.status === "UP").length;
+    document.getElementById("downApisCount").innerText = apis.filter(api => api.status === "DOWN").length;
+
+    // down list
+    const downApisDiv = document.getElementById("downApis");
+    downApisDiv.innerHTML = "";
+    const downApis = apis.filter(api => api.status === "DOWN");
+
+    if (downApis.length > 0) {
+        downApis.forEach((api, index) => {
+            const col = document.createElement("div");
+            col.className = "col-md-6";
+            col.innerHTML = `
+              <ul class="list-group mb-2">
+                <li class="list-group-item list-group-item-danger">
+                  <a href="/api/${encodeURIComponent(api.url)}/" 
+                     class="fw-bold text-dark text-decoration-none">${api.name}</a><br>
+                  <small>
+                    ${api.disk_total > 0 
+                      ? `Stockage : ${(api.disk_free/(1024**3)).toFixed(2)} Go / ${(api.disk_total/(1024**3)).toFixed(2)} Go` 
+                      : `Stockage : Non disponible`}
+                  </small>
+                </li>
+              </ul>`;
+            downApisDiv.appendChild(col);
+        });
+    } else {
+        downApisDiv.innerHTML = '<p class="text-success">Toutes les APIs sont UP !</p>';
+    }
+
+    // chart
+    const labels = apis.map(api => api.name);
+    const free = apis.map(api => (api.disk_free/(1024**3)).toFixed(2));
+    const used = apis.map(api => ((api.disk_total - api.disk_free)/(1024**3)).toFixed(2));
+
+    if (chart) chart.destroy();
+    const ctx = document.getElementById("diskChart").getContext("2d");
+    chart = new Chart(ctx, {
+        type: "bar",
+        data: {
+            labels: labels,
+            datasets: [
+                { label: "Utilisé (Go)", data: used, backgroundColor: "#dc3545" },
+                { label: "Libre (Go)", data: free, backgroundColor: "#28a745" }
+            ]
+        },
+        options: { responsive: true }
+    });
+}
+
+document.addEventListener("DOMContentLoaded", loadApis);
+setInterval(loadApis, 300000);
+</script>
 </body>
 </html>

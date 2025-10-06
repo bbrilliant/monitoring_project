@@ -1,46 +1,48 @@
 import requests
 
-
-import requests
-
-def check_api_health(api_url):
+def check_api_health(url):
     try:
-        response = requests.get(api_url, timeout=5, verify=False)
+        response = requests.get(url, timeout=5)
 
-        # --- Étape 1 : Vérification du code HTTP ---
+        # Vérifie le statut HTTP
         if response.status_code == 200:
             status = "UP"
-        else:
-            return {
-                "status": "DOWN",
-                "disk_status": "N/A",
-                "disk_total": None,
-                "disk_free": None
-            }
+            disk_total = 0
+            disk_free = 0
+            disk_status = "Non disponible"
 
-        # --- Étape 2 : Tenter d’analyser la réponse JSON ---
-        try:
-            data = response.json()
-            return {
-                "status": status,  # toujours UP car HTTP 200
-                "disk_status": data.get("details", {}).get("diskSpace", {}).get("status", "N/A"),
-                "disk_total": data.get("details", {}).get("diskSpace", {}).get("details", {}).get("total"),
-                "disk_free": data.get("details", {}).get("diskSpace", {}).get("details", {}).get("free")
-            }
-        except ValueError:
-            # Réponse non JSON → stockage indisponible
+            # Tente d’extraire du JSON
+            try:
+                data = response.json()
+                if "disk_total" in data and "disk_free" in data:
+                    disk_total = data.get("disk_total", 0)
+                    disk_free = data.get("disk_free", 0)
+                    disk_status = "OK"
+            except ValueError:
+                # Pas de JSON → on ignore le stockage
+                pass
+
             return {
                 "status": status,
-                "disk_status": "N/A",
-                "disk_total": None,
-                "disk_free": None
+                "disk_total": disk_total,
+                "disk_free": disk_free,
+                "disk_status": disk_status
+            }
+
+        else:
+            # Code HTTP non 200 → DOWN
+            return {
+                "status": "DOWN",
+                "disk_total": 0,
+                "disk_free": 0,
+                "disk_status": "Indisponible"
             }
 
     except requests.RequestException:
-        # En cas d’erreur réseau ou timeout
+        # Impossible de joindre le serveur → DOWN
         return {
             "status": "DOWN",
-            "disk_status": "N/A",
-            "disk_total": None,
-            "disk_free": None
+            "disk_total": 0,
+            "disk_free": 0,
+            "disk_status": "Indisponible"
         }

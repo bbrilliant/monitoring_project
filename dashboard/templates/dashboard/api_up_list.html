@@ -2,49 +2,30 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <title>APIs UP</title>
-    <link href="{% static 'dashboard/css/bootstrap.min.css' %}" rel="stylesheet">
+  <meta charset="UTF-8">
+  <title>APIs UP</title>
+  <link href="{% static 'dashboard/css/bootstrap.min.css' %}" rel="stylesheet">
 </head>
 <body class="bg-light">
 
-<div class="container py-4">
-    <h2 class="mb-4">Liste des APIs UP</h2>
+<nav class="navbar navbar-dark bg-dark px-3">
+  <a class="navbar-brand" href="/">Dashboard</a>
+  <a href="/admin/" class="btn btn-success btn-sm">Admin</a>
+</nav>
 
-    {% if apis_up %}
-        <table class="table table-bordered table-striped">
-            <thead class="table-dark">
-                <tr>
-                    <th>Nom</th>
-                    <th>URL</th>
-                    <th>Statut</th>
-                    <th>Statut Stockage</th>
-                </tr>
-            </thead>
-            <tbody>
-            {% for api in apis_up %}
-                <tr>
-                    <td>
-                        <a href="{% url 'api_detail' api.url|urlencode %}">
-                            {{ api.name }}
-                        </a>
-                    </td>
-                    <td>{{ api.url }}</td>
-                    <td><span class="badge bg-success">UP</span></td>
-                    <td>
-                        {% if api.disk_status != "N/A" %}
-                            {{ api.disk_status }}
-                        {% else %}
-                            <span class="text-muted">Non disponible</span>
-                        {% endif %}
-                    </td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-    {% else %}
-        <div class="alert alert-warning">Aucune API UP trouvée</div>
-    {% endif %}
+<div class="container py-4">
+  <h2>Liste des APIs UP</h2>
+  {% if up_apis %}
+    <ul class="list-group">
+      {% for api in up_apis %}
+        <li class="list-group-item">
+          <a href="/api/{{ api.url|urlencode }}/" class="fw-bold">{{ api.name }}</a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="text-danger">Aucune API UP</p>
+  {% endif %}
 </div>
 
 </body>

@@ -1,4 +1,4 @@
-import urllib
+""" import urllib
 from django.shortcuts import get_object_or_404, render
 from django.http import JsonResponse
 from .models import MonitoredAPI
@@ -142,3 +142,50 @@ def api_up_list(request):
             pass
 
     return render(request, "dashboard/api_up_list.html", {"apis_up": apis_up})
+ """
+ 
+import urllib
+from django.shortcuts import get_object_or_404, render
+from django.http import JsonResponse
+from .models import MonitoredAPI
+from .services import check_api_health
+import requests
+
+def dashboard(request):
+    """Affiche le dashboard (vide au départ, rempli en JS)"""
+    return render(request, "dashboard/dashboard.html")
+
+def api_data(request):
+    """Renvoie la liste des APIs et leur statut en JSON"""
+    apis = MonitoredAPI.objects.all()
+    results = []
+
+    for api in apis:
+        health = check_api_health(api.url)
+        results.append({
+            "name": api.name,
+            "url": api.url,
+            "status": health["status"],
+            "disk_status": health["disk_status"],
+            "disk_total": health["disk_total"],
+            "disk_free": health["disk_free"]
+        })
+
+    return JsonResponse(results, safe=False)
+
+def api_detail(request, api_url):
+    #Détail d’une API
+    api = get_object_or_404(MonitoredAPI, url=api_url)
+    health = check_api_health(api.url)
+    context = {"api": api, "health": health}
+    return render(request, "dashboard/api_detail.html", context)
+
+def api_up_list(request):
+    """Liste des APIs UP"""
+    apis = MonitoredAPI.objects.all()
+    up_apis = []
+    for api in apis:
+        health = check_api_health(api.url)
+        if health["status"] == "UP":
+            up_apis.append({"name": api.name, "url": api.url})
+    return render(request, "dashboard/api_up_list.html", {"up_apis": up_apis})
