@@ -89,7 +89,7 @@ def dashboard(request):
 
 # --- Vue des détails d'une API ---
 def api_detail(request, api_url):
-    api = get_object_or_404(API, url=api_url)
+    api = get_object_or_404(MonitoredAPI, url=api_url)
     details = check_api_health(api.url)
 
     return render(request, "dashboard/api_detail.html", {
