@@ -7,9 +7,7 @@
     <link href="{% static 'dashboard/css/bootstrap.min.css' %}" rel="stylesheet">
 
     <style>
-        body {
-            background-color: #f8f9fa;
-        }
+        body { background-color: #f8f9fa; }
 
         h4 {
             font-weight: bold;
@@ -31,9 +29,7 @@
             border-bottom: 1px solid #dee2e6;
         }
 
-        .api-item:last-child {
-            border-bottom: none;
-        }
+        .api-item:last-child { border-bottom: none; }
 
         .api-name {
             font-weight: 600;
@@ -41,9 +37,7 @@
             text-decoration: none;
         }
 
-        .api-name:hover {
-            color: #0d6efd;
-        }
+        .api-name:hover { color: #0d6efd; }
 
         .storage-info {
             font-size: 0.95rem;
@@ -55,9 +49,7 @@
             font-style: italic;
         }
 
-        .navbar-brand {
-            font-weight: bold;
-        }
+        .navbar-brand { font-weight: bold; }
     </style>
 </head>
 
@@ -81,13 +73,11 @@
                         <a href="{% url 'api_detail' api.url %}" class="api-name">{{ api.name }}</a>
 
                         <!-- Stockage -->
-                        {% if api.disk_total and api.disk_free %}
-                            {% with total_gb=api.disk_total|divisibleby:1073741824 free_gb=api.disk_free|divisibleby:1073741824 %}
-                                <span class="storage-info">
-                                    {{ api.disk_total|floatformat:2|divisibleby:1073741824 }} Go total /
-                                    {{ ((api.disk_total - api.disk_free) / (1024**3))|floatformat:2 }} Go utilisés
-                                </span>
-                            {% endwith %}
+                        {% if api.disk_total_gb and api.disk_used_gb %}
+                            <span class="storage-info">
+                                {{ api.disk_total_gb|floatformat:2 }} Go total /
+                                {{ api.disk_used_gb|floatformat:2 }} Go utilisés
+                            </span>
                         {% else %}
                             <span class="storage-na">Stockage non disponible</span>
                         {% endif %}
