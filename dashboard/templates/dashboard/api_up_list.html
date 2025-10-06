@@ -5,45 +5,88 @@
     <meta charset="UTF-8">
     <title>APIs UP</title>
     <link href="{% static 'dashboard/css/bootstrap.min.css' %}" rel="stylesheet">
+
     <style>
-        {% comment %} .api-up {
-            background-color: #28a745;
-            color: white;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 10px;
-        } {% endcomment %}
-        .api-up a {
-            color: #fff;
-            text-decoration: underline;
+        body {
+            background-color: #f8f9fa;
         }
-        .api-up a:hover {
-            color: #d4edda;
+
+        h4 {
+            font-weight: bold;
+            color: #198754;
+        }
+
+        .api-list {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+        }
+
+        .api-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .api-item:last-child {
+            border-bottom: none;
+        }
+
+        .api-name {
+            font-weight: 600;
+            color: #212529;
+            text-decoration: none;
+        }
+
+        .api-name:hover {
+            color: #0d6efd;
+        }
+
+        .badge {
+            font-size: 0.9rem;
+            padding: 0.4em 0.6em;
         }
     </style>
 </head>
-<body class="bg-light">
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-  <div class="container">
-    <a class="navbar-brand fw-bold" href="/">API MONITORING DASHBOARD</a>
-  </div>
-</nav>
+<body>
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/">API MONITORING DASHBOARD</a>
+        </div>
+    </nav>
 
-<div class="container py-4">
-  <h4 class="fw-bold text-center mb-4 text-success">Liste des APIs UP</h4>
+    <!-- CONTENU -->
+    <div class="container py-4">
+        <h4 class="text-center mb-4">Liste des APIs UP</h4>
 
-  {% if up_apis %}
-    {% for api in up_apis %}
-      <div class="api-up d-flex justify-content-between text-dark align-items-center">
-        <a href="{% url 'api_detail' api.url %}" class="fw-bold">{{ api.name }}</a>
-      </div>
-    {% endfor %}
-  {% else %}
-    <p class="text-center text-danger">Aucune API UP actuellement.</p>
-  {% endif %}
-</div>
+        {% if up_apis %}
+            <div class="api-list">
+                {% for api in up_apis %}
+                    <div class="api-item">
+                        <!-- Statut du stockage -->
+                        {% if api.disk_status == "OK" %}
+                            <span class="badge bg-success">Stockage OK</span>
+                        {% elif api.disk_status == "Non disponible" %}
+                            <span class="badge bg-secondary">Stockage N/A</span>
+                        {% else %}
+                            <span class="badge bg-danger">Stockage DOWN</span>
+                        {% endif %}
 
-<script src="{% static 'dashboard/js/bootstrap.bundle.min.js' %}"></script>
+                        <!-- Nom de l'API avec lien -->
+                        <a href="{% url 'api_detail' api.url %}" class="api-name">{{ api.name }}</a>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-center text-danger fw-bold mt-4">Aucune API UP actuellement.</p>
+        {% endif %}
+    </div>
+
+    <script src="{% static 'dashboard/js/bootstrap.bundle.min.js' %}"></script>
 </body>
 </html>
