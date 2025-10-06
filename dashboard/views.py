@@ -88,17 +88,27 @@ def dashboard(request):
     })
 
 # --- Vue des détails d'une API ---
-def api_detail(request, api_url):
-    api = get_object_or_404(MonitoredAPI, url=api_url)
-    details = check_api_health(api.url)
+# Exemple dans views.py
 
-    return render(request, "dashboard/api_detail.html", {
-        "api": {
-            "name": api.name,
-            "url": api.url,
-            **details
-        }
-    })
+def api_detail(request, api_id):
+    api = MonitoredAPI.objects.get(id=api_id)
+    api_info = check_api_health(api.url)
+
+    # Conversion en Go et ajout de l'espace utilisé
+    disk_total = api_info.get("disk_total", 0)
+    disk_free = api_info.get("disk_free", 0)
+    disk_used = disk_total - disk_free
+
+    api_info["disk_total_gb"] = round(disk_total / (1024 ** 3), 2)
+    api_info["disk_free_gb"] = round(disk_free / (1024 ** 3), 2)
+    api_info["disk_used_gb"] = round(disk_used / (1024 ** 3), 2)
+
+    context = {
+        "api": api,
+        "api_info": api_info
+    }
+    return render(request, "dashboard/api_detail.html", context)
+
 
 # --- Vue des APIs UP ---
 def api_up_list(request):
