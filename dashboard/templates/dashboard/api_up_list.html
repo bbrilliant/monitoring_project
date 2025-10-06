@@ -19,7 +19,7 @@
         .api-list {
             background: #fff;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
             padding: 15px;
         }
 
@@ -45,9 +45,18 @@
             color: #0d6efd;
         }
 
-        .badge {
-            font-size: 0.9rem;
-            padding: 0.4em 0.6em;
+        .storage-info {
+            font-size: 0.95rem;
+            color: #495057;
+        }
+
+        .storage-na {
+            color: #6c757d;
+            font-style: italic;
+        }
+
+        .navbar-brand {
+            font-weight: bold;
         }
     </style>
 </head>
@@ -56,7 +65,7 @@
     <!-- NAVBAR -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
-            <a class="navbar-brand fw-bold" href="/">API MONITORING DASHBOARD</a>
+            <a class="navbar-brand" href="/">API MONITORING DASHBOARD</a>
         </div>
     </nav>
 
@@ -68,17 +77,20 @@
             <div class="api-list">
                 {% for api in up_apis %}
                     <div class="api-item">
-                        <!-- Statut du stockage -->
-                        {% if api.disk_status == "OK" %}
-                            <span class="badge bg-success">Stockage OK</span>
-                        {% elif api.disk_status == "Non disponible" %}
-                            <span class="badge bg-secondary">Stockage N/A</span>
-                        {% else %}
-                            <span class="badge bg-danger">Stockage DOWN</span>
-                        {% endif %}
-
-                        <!-- Nom de l'API avec lien -->
+                        <!-- Nom cliquable -->
                         <a href="{% url 'api_detail' api.url %}" class="api-name">{{ api.name }}</a>
+
+                        <!-- Stockage -->
+                        {% if api.disk_total and api.disk_free %}
+                            {% with total_gb=api.disk_total|divisibleby:1073741824 free_gb=api.disk_free|divisibleby:1073741824 %}
+                                <span class="storage-info">
+                                    {{ api.disk_total|floatformat:2|divisibleby:1073741824 }} Go total /
+                                    {{ ((api.disk_total - api.disk_free) / (1024**3))|floatformat:2 }} Go utilisés
+                                </span>
+                            {% endwith %}
+                        {% else %}
+                            <span class="storage-na">Stockage non disponible</span>
+                        {% endif %}
                     </div>
                 {% endfor %}
             </div>

@@ -5,14 +5,21 @@
     <meta charset="UTF-8">
     <title>Détails API - {{ api.name }}</title>
     <link href="{% static 'dashboard/css/bootstrap.min.css' %}" rel="stylesheet">
+    <script src="{% static 'dashboard/js/chart.min.js' %}"></script> <!-- Chart.js local -->
+
     <style>
-        {% comment %} .status-up {
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .status-up {
             background-color: #28a745;
             color: white;
             padding: 10px 15px;
             border-radius: 8px;
             display: inline-block;
-        } {% endcomment %}
+        }
+
         .status-down {
             background-color: #dc3545;
             color: white;
@@ -20,42 +27,116 @@
             border-radius: 8px;
             display: inline-block;
         }
+
+        .card {
+            border: none;
+            border-radius: 10px;
+        }
+
+        .card-body {
+            padding: 2rem;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 60%;
+            max-width: 300px;
+            margin: 0 auto;
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+        }
     </style>
 </head>
-<body class="bg-light">
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-  <div class="container-fluid">
-    <a class="navbar-brand fw-bold" href="/">API MONITORING DASHBOARD</a>
-  </div>
-</nav>
+<body>
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold" href="/">API MONITORING DASHBOARD</a>
+        </div>
+    </nav>
 
-<div class="container py-5">
-  <div class="card shadow-sm border-0">
-    <div class="card-body">
-      <h4 class="card-title text-center fw-bold mb-3">{{ api.name }}</h4>
-      <p><strong>URL :</strong> {{ api.url }}</p>
+    <!-- CONTENU PRINCIPAL -->
+    <div class="container py-5">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h4 class="card-title text-center fw-bold mb-3">{{ api.name }}</h4>
+                <p><strong>URL :</strong> {{ api.url }}</p>
 
-      {% if api.status == "UP" %}
-        <p><strong>Statut :</strong> <span class="status-up">UP</span></p>
-      {% else %}
-        <p><strong>Statut :</strong> <span class="status-down">DOWN</span></p>
-      {% endif %}
+                {% if api.status == "UP" %}
+                    <p><strong>Statut :</strong> <span class="status-up">UP</span></p>
+                {% else %}
+                    <p><strong>Statut :</strong> <span class="status-down">DOWN</span></p>
+                {% endif %}
 
-      <hr>
+                <hr>
 
-      <h5 class="fw-bold">Stockage :</h5>
-      {% if api.disk_status and api.disk_status != "N/A" %}
-        <p><strong>Statut :</strong> {{ api.disk_status }}</p>
-        <p><strong>Espace total :</strong> {{ api.disk_total|default:0 }}</p>
-        <p><strong>Espace libre :</strong> {{ api.disk_free|default:0 }}</p>
-      {% else %}
-        <p>Informations sur le stockage non disponibles.</p>
-      {% endif %}
+                <h5 class="fw-bold">Stockage :</h5>
+
+                {% if api.disk_status and api.disk_status != "N/A" %}
+                    <p><strong>Statut :</strong> {{ api.disk_status }}</p>
+                    <p><strong>Espace total :</strong> {{ api.disk_total|floatformat:2 }} Go</p>
+                    <p><strong>Espace libre :</strong> {{ api.disk_free|floatformat:2 }} Go</p>
+
+                    <!-- Conteneur du graphique -->
+                    <div class="chart-container mt-4">
+                        <canvas id="storageChart"></canvas>
+                    </div>
+
+                    <script>
+                        document.addEventListener("DOMContentLoaded", function() {
+                            const ctx = document.getElementById('storageChart').getContext('2d');
+
+                            // Convertir les valeurs Django en nombres JS
+                            const total = {{ api.disk_total|default:0 }};
+                            const free = {{ api.disk_free|default:0 }};
+                            const used = total - free;
+
+                            new Chart(ctx, {
+                                type: 'doughnut',
+                                data: {
+                                    labels: ['Utilisé', 'Libre'],
+                                    datasets: [{
+                                        data: [used, free],
+                                        backgroundColor: ['#dc3545', '#198754'],
+                                        borderColor: '#fff',
+                                        borderWidth: 2
+                                    }]
+                                },
+                                options: {
+                                    responsive: true,
+                                    cutout: '70%',
+                                    plugins: {
+                                        legend: {
+                                            position: 'bottom',
+                                            labels: {
+                                                font: { size: 14 }
+                                            }
+                                        },
+                                        tooltip: {
+                                            callbacks: {
+                                                label: function(context) {
+                                                    const label = context.label || '';
+                                                    const value = context.parsed || 0;
+                                                    return `${label}: ${value.toFixed(2)} Go`;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            });
+                        });
+                    </script>
+
+                {% else %}
+                    <p>Informations sur le stockage non disponibles.</p>
+                {% endif %}
+            </div>
+        </div>
     </div>
-  </div>
-</div>
 
-<script src="{% static 'dashboard/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'dashboard/js/bootstrap.bundle.min.js' %}"></script>
 </body>
 </html>
