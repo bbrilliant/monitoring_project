@@ -111,24 +111,24 @@ def api_detail(request, api_url):
 
 
 # --- Vue des APIs UP ---
+from django.shortcuts import render
+
 def api_up_list(request):
-    apis = MonitoredAPI.objects.all()
-    api_data = []
+    up_apis = []
+    
+    # Exemple : tu récupères tes APIs (adapter selon ton modèle ou ta logique)
+    for api in MonitoredAPI.objects.filter(status='up'):
+        disk_total_gb = api.disk_total / (1024 ** 3) if api.disk_total else None
+        disk_free_gb = api.disk_free / (1024 ** 3) if api.disk_free else None
+        disk_used_gb = None
+        if disk_total_gb is not None and disk_free_gb is not None:
+            disk_used_gb = disk_total_gb - disk_free_gb
 
-    # Threads pour accélérer
-    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
-        future_to_api = {executor.submit(check_api_health, api.url): api for api in apis}
-        for future in concurrent.futures.as_completed(future_to_api):
-            api = future_to_api[future]
-            try:
-                result = future.result()
-                if result["status"] == "UP":
-                    api_data.append({
-                        "name": api.name,
-                        "url": api.url,
-                        **result
-                    })
-            except Exception:
-                continue
+        up_apis.append({
+            "name": api.name,
+            "url": api.url,
+            "disk_total_gb": disk_total_gb,
+            "disk_used_gb": disk_used_gb
+        })
 
-    return render(request, "dashboard/api_up_list.html", {"up_apis": api_data})
+    return render(request, "dashboard/api_up_list.html", {"up_apis": up_apis})
