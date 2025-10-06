@@ -111,24 +111,47 @@ def api_detail(request, api_url):
 
 
 # --- Vue des APIs UP ---
+import concurrent.futures
 from django.shortcuts import render
+from .models import MonitoredAPI
+from .services import check_api_health  # si ta fonction est dans utils.py
 
 def api_up_list(request):
-    up_apis = []
-    
-    # Exemple : tu récupères tes APIs (adapter selon ton modèle ou ta logique)
-    for api in MonitoredAPI.objects.filter(status='up'):
-        disk_total_gb = api.disk_total / (1024 ** 3) if api.disk_total else None
-        disk_free_gb = api.disk_free / (1024 ** 3) if api.disk_free else None
-        disk_used_gb = None
-        if disk_total_gb is not None and disk_free_gb is not None:
-            disk_used_gb = disk_total_gb - disk_free_gb
+    apis = MonitoredAPI.objects.all()
+    api_data = []
 
-        up_apis.append({
-            "name": api.name,
-            "url": api.url,
-            "disk_total_gb": disk_total_gb,
-            "disk_used_gb": disk_used_gb
-        })
+    # Utilisation de threads pour accélérer les requêtes
+    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+        future_to_api = {executor.submit(check_api_health, api.url): api for api in apis}
 
-    return render(request, "dashboard/api_up_list.html", {"up_apis": up_apis})
+        for future in concurrent.futures.as_completed(future_to_api):
+            api = future_to_api[future]
+            try:
+                result = future.result()
+
+                # On ne garde que les APIs UP
+                if result.get("status") == "UP":
+                    disk_total = result.get("disk_total", 0)
+                    disk_free = result.get("disk_free", 0)
+
+                    # Conversion en Go
+                    disk_total_gb = round(disk_total / (1024 ** 3), 2) if disk_total else None
+                    disk_free_gb = round(disk_free / (1024 ** 3), 2) if disk_free else None
+                    disk_used_gb = round(disk_total_gb - disk_free_gb, 2) if disk_total_gb and disk_free_gb else None
+
+                    api_data.append({
+                        "name": api.name,
+                        "url": api.url,
+                        "status": result.get("status"),
+                        "disk_total_gb": disk_total_gb,
+                        "disk_free_gb": disk_free_gb,
+                        "disk_used_gb": disk_used_gb,
+                        "disk_status": result.get("disk_status", "Non disponible")
+                    })
+
+            except Exception as e:
+                # On ignore les APIs qui ont échoué
+                continue
+
+    # On envoie toutes les APIs UP au template
+    return render(request, "dashboard/api_up_list.html", {"up_apis": api_data})
