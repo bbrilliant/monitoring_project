@@ -35,9 +35,8 @@
 
   {% if up_apis %}
     {% for api in up_apis %}
-      <div class="api-up d-flex justify-content-between align-items-center">
+      <div class="api-up d-flex justify-content-between text-dark align-items-center">
         <a href="{% url 'api_detail' api.url %}" class="fw-bold">{{ api.name }}</a>
-        <span>Status : UP ✅</span>
       </div>
     {% endfor %}
   {% else %}
