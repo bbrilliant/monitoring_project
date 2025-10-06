@@ -90,8 +90,8 @@ def dashboard(request):
 # --- Vue des détails d'une API ---
 # Exemple dans views.py
 
-def api_detail(request, api_id):
-    api = MonitoredAPI.objects.get(id=api_id)
+def api_detail(request, api_url):
+    api = get_object_or_404(MonitoredAPI, url=api_url)
     api_info = check_api_health(api.url)
 
     # Conversion en Go et ajout de l'espace utilisé
