@@ -2,31 +2,49 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>APIs UP</title>
-  <link href="{% static 'dashboard/css/bootstrap.min.css' %}" rel="stylesheet">
+    <meta charset="UTF-8">
+    <title>APIs UP</title>
+    <link href="{% static 'dashboard/css/bootstrap.min.css' %}" rel="stylesheet">
+    <style>
+        .api-up {
+            background-color: #28a745;
+            color: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+        .api-up a {
+            color: #fff;
+            text-decoration: underline;
+        }
+        .api-up a:hover {
+            color: #d4edda;
+        }
+    </style>
 </head>
 <body class="bg-light">
 
-<nav class="navbar navbar-dark bg-dark px-3">
-  <a class="navbar-brand" href="/">Dashboard</a>
-  <a href="/admin/" class="btn btn-success btn-sm">Admin</a>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container-fluid">
+    <a class="navbar-brand fw-bold" href="/">API MONITORING DASHBOARD</a>
+  </div>
 </nav>
 
 <div class="container py-4">
-  <h2>Liste des APIs UP</h2>
+  <h4 class="fw-bold text-center mb-4 text-success">Liste des APIs UP</h4>
+
   {% if up_apis %}
-    <ul class="list-group">
-      {% for api in up_apis %}
-        <li class="list-group-item">
-          <a href="/api/{{ api.url|urlencode }}/" class="fw-bold">{{ api.name }}</a>
-        </li>
-      {% endfor %}
-    </ul>
+    {% for api in up_apis %}
+      <div class="api-up d-flex justify-content-between align-items-center">
+        <a href="{% url 'api_detail' api.url %}" class="fw-bold">{{ api.name }}</a>
+        <span>Status : UP ✅</span>
+      </div>
+    {% endfor %}
   {% else %}
-    <p class="text-danger">Aucune API UP</p>
+    <p class="text-center text-danger">Aucune API UP actuellement.</p>
   {% endif %}
 </div>
 
+<script src="{% static 'dashboard/js/bootstrap.bundle.min.js' %}"></script>
 </body>
 </html>
