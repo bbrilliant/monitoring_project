@@ -111,43 +111,27 @@ def api_detail(request, api_url):
 
 
 # --- Vue des APIs UP ---
-from .services import check_api_health  # adapte si besoin
-
 def api_up_list(request):
     apis = MonitoredAPI.objects.all()
     api_data = []
 
-    # Threads pour accélérer les vérifications
+    # Threads pour accélérer
     with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
         future_to_api = {executor.submit(check_api_health, api.url): api for api in apis}
-
         for future in concurrent.futures.as_completed(future_to_api):
             api = future_to_api[future]
             try:
                 result = future.result()
-
-                # On ne conserve que les APIs UP
-                if result.get("status") == "UP":
-                    disk_total = result.get("disk_total", 0)
-                    disk_free = result.get("disk_free", 0)
-
-                    # Conversion des tailles en Go
-                    disk_total_gb = round(disk_total / (1024 ** 3), 2) if disk_total else 0
-                    disk_free_gb = round(disk_free / (1024 ** 3), 2) if disk_free else 0
-                    disk_used_gb = round(disk_total_gb - disk_free_gb, 2) if disk_total_gb and disk_free_gb else 0
-
+                if result["status"] == "UP":
                     api_data.append({
                         "name": api.name,
                         "url": api.url,
-                        "status": result.get("status"),
-                        "disk_status": result.get("disk_status", "Non disponible"),
-                        "disk_total_gb": disk_total_gb,
-                        "disk_free_gb": disk_free_gb,
-                        "disk_used_gb": disk_used_gb,
+                        "disk_total": result["disk_total"],
+                        "disk_free": result["disk_free"],
+                        "disk_used": result["disk_total"] - result["disk_free"],
+                        **result
                     })
-
             except Exception:
                 continue
 
     return render(request, "dashboard/api_up_list.html", {"up_apis": api_data})
-
