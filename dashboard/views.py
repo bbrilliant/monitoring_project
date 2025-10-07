@@ -126,7 +126,7 @@ def api_up_list(request):
                     api_data.append({
                         "name": api.name,
                         "url": api.url,
-                        "disk_total": round(result["disk_total"] / (1024 ** 3), 2),
+                        "disk_total": round(result["disk_total"] / 1073741824, 2),
                         "disk_free": round(result["disk_free"] / (1024 ** 3), 2),
                         "disk_used": round(((result["disk_total"] - result["disk_free"])) / (1024 ** 3), 2),
                         **result
