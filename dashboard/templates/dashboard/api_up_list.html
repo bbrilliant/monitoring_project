@@ -76,7 +76,7 @@
                         {% if api.disk_total and api.disk_used %}
                             <span class="storage-info">
                                 {{ api.disk_used|floatformat:2 }} Go utilisés /
-                                {{ api.disk_total|floatformat:2 }} Go total
+                                {{ api.disk_total/1073741824|floatformat:2 }} Go total
                             </span>
                         {% else %}
                             <span class="storage-na">Stockage non disponible</span>
