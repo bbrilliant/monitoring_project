@@ -58,12 +58,14 @@ def dashboard(request):
             try:
                 result = future.result()
                 api_data.append({
+                    "id": api.id,  # ✅ Ajouté ici
                     "name": api.name,
                     "url": api.url,
                     **result
                 })
             except Exception:
                 api_data.append({
+                    "id": api.id,  # ✅ Ajouté aussi ici
                     "name": api.name,
                     "url": api.url,
                     "status": "DOWN",
@@ -86,7 +88,6 @@ def dashboard(request):
         "stats": stats,
         "down_apis": down_apis
     })
-
 # --- Vue des détails d'une API ---
 # Exemple dans views.py
 

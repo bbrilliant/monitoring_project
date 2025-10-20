@@ -71,18 +71,21 @@
               {% if down_apis %}
                 <ul class="list-group list-group-flush">
                   {% for api in down_apis %}
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                      {% if api.id %}
-                        <a href="{% url 'api_detail' api.id %}" class="fw-bold text-dark text-decoration-none">{{ api.name }}</a>
-                        <a href="{% url 'api_detail' api.id %}" class="fw-bold text-dark text-decoration-none">{{ api.url }}</a>
-                      {% else %}
-                        <span class="fw-bold text-muted">{{ api.name }}</span>
-                      {% endif %}
+                    <li class="list-group-item d-flex justify-content-between align-items-start">
+                      <div>
+                        {% if api.id %}
+                          <a href="{% url 'api_detail' api.id %}" class="fw-bold text-dark text-decoration-none">{{ api.name }}</a><br />
+                          <small class="text-muted">{{ api.url }}</small>
+                        {% else %}
+                          <span class="fw-bold text-muted">{{ api.name }}</span><br />
+                          <small class="text-muted">{{ api.url }}</small>
+                        {% endif %}
+                      </div>
 
                       {% if api.disk_status and api.disk_status != 'N/A' %}
-                        <span class="badge bg-secondary">Stockage : {{ api.disk_status }}</span>
+                        <span class="badge bg-secondary align-self-center">Stockage : {{ api.disk_status }}</span>
                       {% else %}
-                        <span class="badge bg-light text-dark border">Stockage : Non dispo</span>
+                        <span class="badge bg-light text-dark border align-self-center">Stockage : Non dispo</span>
                       {% endif %}
                     </li>
                   {% endfor %}
