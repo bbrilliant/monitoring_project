@@ -1,101 +1,101 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="fr">
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <title>Dashboard - Monitoring APIs</title>
-    <link href="{% static 'dashboard/css/bootstrap.min.css' %}" rel="stylesheet">
+    <link href="{% static 'dashboard/css/bootstrap.min.css' %}" rel="stylesheet" />
     <style>
-        .stat-box {
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-            color: #fff;
-        }
-        .stat-total {
-            background-color: #6c757d; /* gris */
-        }
-        .stat-up {
-            background-color: #28a745; /* vert */
-        }
-        .stat-down {
-            background-color: #dc3545; /* rouge */
-        }
+      .stat-box {
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        color: #fff;
+      }
+      .stat-total {
+        background-color: #6c757d; /* gris */
+      }
+      .stat-up {
+        background-color: #28a745; /* vert */
+      }
+      .stat-down {
+        background-color: #dc3545; /* rouge */
+      }
     </style>
-</head>
-<body class="bg-light">
+  </head>
+  <body class="bg-light">
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+      <div class="container">
+        <a class="navbar-brand fw-bold" href="/">API MONITORING DASHBOARD</a>
+        <div class="d-flex">
+          <a href="{% url 'api_up_list' %}" class="btn btn-outline-light btn-sm me-2">Voir APIs UP</a>
+          <a href="/admin/" class="btn btn-success btn-sm">Admin</a>
+        </div>
+      </div>
+    </nav>
 
-<!-- NAVBAR -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-  <div class="container">
-    <a class="navbar-brand fw-bold" href="/">API MONITORING DASHBOARD</a>
-    <div class="d-flex">
-      <a href="{% url 'api_up_list' %}" class="btn btn-outline-light btn-sm me-2">Voir APIs UP</a>
-      <a href="/admin/" class="btn btn-success btn-sm">Admin</a>
-    </div>
-  </div>
-</nav>
+    <!-- CONTENU PRINCIPAL -->
+    <div class="container py-4">
+      <div class="row">
+        <!-- COLONNE GAUCHE : STATISTIQUES -->
+        <div class="col-md-4 mb-3">
+          <div class="card shadow-sm border-0">
+            <div class="card-body text-center">
+              <h5 class="card-title fw-bold text-secondary mb-4">Statistiques Générales</h5>
 
-<!-- CONTENU PRINCIPAL -->
-<div class="container py-4">
-  <div class="row">
+              <div class="stat-box stat-total">
+                <h6 class="text-light">Total APIs</h6>
+                <p class="display-6 fw-bold">{{ stats.total }}</p>
+              </div>
 
-    <!-- COLONNE GAUCHE : STATISTIQUES -->
-    <div class="col-md-4 mb-3">
-      <div class="card shadow-sm border-0">
-        <div class="card-body text-center">
-          <h5 class="card-title fw-bold text-secondary mb-4">Statistiques Générales</h5>
+              <div class="stat-box stat-up">
+                <h6>APIs UP</h6>
+                <p class="display-6 fw-bold">{{ stats.up }}</p>
+              </div>
 
-          <div class="stat-box stat-total">
-            <h6 class="text-light">Total APIs</h6>
-            <p class="display-6 fw-bold">{{ stats.total }}</p>
+              <div class="stat-box stat-down">
+                <h6>APIs DOWN</h6>
+                <p class="display-6 fw-bold">{{ stats.down }}</p>
+              </div>
+            </div>
           </div>
+        </div>
 
-          <div class="stat-box stat-up">
-            <h6>APIs UP</h6>
-            <p class="display-6 fw-bold">{{ stats.up }}</p>
-          </div>
+        <!-- COLONNE DROITE : LISTE DES APIs DOWN -->
+        <div class="col-md-8">
+          <div class="card shadow-sm border-0">
+            <div class="card-body">
+              <h5 class="card-title fw-bold text-center mb-3 text-danger">APIs DOWN</h5>
 
-          <div class="stat-box stat-down">
-            <h6>APIs DOWN</h6>
-            <p class="display-6 fw-bold">{{ stats.down }}</p>
+              {% if down_apis %}
+                <ul class="list-group list-group-flush">
+                  {% for api in down_apis %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                      {% if api.id %}
+                        <a href="{% url 'api_detail' api.id %}" class="fw-bold text-dark text-decoration-none">{{ api.name }}</a>
+                        <a href="{% url 'api_detail' api.id %}" class="fw-bold text-dark text-decoration-none">{{ api.url }}</a>
+                      {% else %}
+                        <span class="fw-bold text-muted">{{ api.name }}</span>
+                      {% endif %}
+
+                      {% if api.disk_status and api.disk_status != 'N/A' %}
+                        <span class="badge bg-secondary">Stockage : {{ api.disk_status }}</span>
+                      {% else %}
+                        <span class="badge bg-light text-dark border">Stockage : Non dispo</span>
+                      {% endif %}
+                    </li>
+                  {% endfor %}
+                </ul>
+              {% else %}
+                <p class="text-success text-center mt-4">✅ Toutes les APIs sont UP !</p>
+              {% endif %}
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- COLONNE DROITE : LISTE DES APIs DOWN -->
-    <div class="col-md-8">
-      <div class="card shadow-sm border-0">
-        <div class="card-body">
-          <h5 class="card-title fw-bold text-center mb-3 text-danger">APIs DOWN</h5>
-
-          {% if down_apis %}
-            <ul class="list-group list-group-flush">
-              {% for api in down_apis %}
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                  <a href="{% url 'api_detail' api.url %}" class="fw-bold text-dark text-decoration-none">
-                    {{ api.name }}
-                  </a>
-
-                  {% if api.disk_status and api.disk_status != "N/A" %}
-                    <span class="badge bg-secondary">Stockage : {{ api.disk_status }}</span>
-                  {% else %}
-                    <span class="badge bg-light text-dark border">Stockage : Non dispo</span>
-                  {% endif %}
-                </li>
-              {% endfor %}
-            </ul>
-          {% else %}
-            <p class="text-success text-center mt-4">✅ Toutes les APIs sont UP !</p>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-
-  </div>
-</div>
-
-<script src="{% static 'dashboard/js/bootstrap.bundle.min.js' %}"></script>
-</body>
+    <script src="{% static 'dashboard/js/bootstrap.bundle.min.js' %}"></script>
+  </body>
 </html>

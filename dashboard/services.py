@@ -1,67 +1,31 @@
+from django.core.cache import cache
 import requests
 
-def check_api_health(url):
+def check_api_health(api_url):
+    cache_key = f"api_status_{api_url}"
+    cached_data = cache.get(cache_key)
+
+    if cached_data:
+        return cached_data
+
     try:
-        response = requests.get(url, timeout=5)
-
-        # 🟢 Cas 1 : statut HTTP 200 → API UP
+        response = requests.get(api_url, timeout=5, verify=False)
         if response.status_code == 200:
-            status = "UP"
-            disk_total = 0
-            disk_free = 0
-            disk_status = "Non disponible"
-
-            # Essaie d’extraire du JSON
             try:
                 data = response.json()
-                if "disk_total" in data and "disk_free" in data:
-                    disk_total = data.get("disk_total", 0)
-                    disk_free = data.get("disk_free", 0)
-                    disk_status = "OK"
+                result = {
+                    "status": "UP",
+                    "disk_status": data.get("details", {}).get("diskSpace", {}).get("status", "N/A"),
+                    "disk_total": data.get("details", {}).get("diskSpace", {}).get("details", {}).get("total", 0),
+                    "disk_free": data.get("details", {}).get("diskSpace", {}).get("details", {}).get("free", 0),
+                }
             except ValueError:
-                # Pas de JSON → on ignore le stockage
-                pass
-
-            return {
-                "status": status,
-                "disk_total": disk_total,
-                "disk_free": disk_free,
-                "disk_status": disk_status
-            }
-
-        # 🔴 Cas 2 : statut HTTP 503 → API DOWN (souvent erreur serveur)
-        elif response.status_code == 503:
-            try:
-                data = response.json()
-                disk_total = data.get("disk_total", 0)
-                disk_free = data.get("disk_free", 0)
-                disk_status = data.get("disk_status", "Indisponible")
-            except ValueError:
-                disk_total = 0
-                disk_free = 0
-                disk_status = "Indisponible"
-
-            return {
-                "status": "DOWN",
-                "disk_total": disk_total,
-                "disk_free": disk_free,
-                "disk_status": disk_status
-            }
-
-        # ⚪ Cas 3 : autre code HTTP → DOWN
+                result = {"status": "UP", "disk_status": "N/A", "disk_total": 0, "disk_free": 0}
         else:
-            return {
-                "status": "DOWN",
-                "disk_total": 0,
-                "disk_free": 0,
-                "disk_status": "Indisponible"
-            }
+            result = {"status": "DOWN", "disk_status": "N/A", "disk_total": 0, "disk_free": 0}
 
     except requests.RequestException:
-        # 🔻 Cas 4 : API injoignable
-        return {
-            "status": "DOWN",
-            "disk_total": 0,
-            "disk_free": 0,
-            "disk_status": "Indisponible"
-        }
+        result = {"status": "DOWN", "disk_status": "N/A", "disk_total": 0, "disk_free": 0}
+
+    cache.set(cache_key, result, timeout=300)
+    return result

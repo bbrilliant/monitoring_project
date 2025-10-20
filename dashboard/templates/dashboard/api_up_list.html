@@ -1,94 +1,105 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="fr">
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <title>APIs UP</title>
-    <link href="{% static 'dashboard/css/bootstrap.min.css' %}" rel="stylesheet">
+    <link href="{% static 'dashboard/css/bootstrap.min.css' %}" rel="stylesheet" />
 
     <style>
-        body { background-color: #f8f9fa; }
-
-        h4 {
-            font-weight: bold;
-            color: #198754;
-        }
-
-        .api-list {
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-            padding: 15px;
-        }
-
-        .api-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid #dee2e6;
-        }
-
-        .api-item:last-child { border-bottom: none; }
-
-        .api-name {
-            font-weight: 600;
-            color: #212529;
-            text-decoration: none;
-        }
-
-        .api-name:hover { color: #0d6efd; }
-
-        .storage-info {
-            font-size: 0.95rem;
-            color: #495057;
-        }
-
-        .storage-na {
-            color: #6c757d;
-            font-style: italic;
-        }
-
-        .navbar-brand { font-weight: bold; }
+      body {
+        background-color: #f8f9fa;
+      }
+      
+      h4 {
+        font-weight: bold;
+        color: #198754;
+      }
+      
+      .api-list {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        padding: 15px;
+      }
+      
+      .api-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid #dee2e6;
+      }
+      
+      .api-item:last-child {
+        border-bottom: none;
+      }
+      
+      .api-name {
+        font-weight: 600;
+        color: #212529;
+        text-decoration: none;
+      }
+      
+      .api-name:hover {
+        color: #0d6efd;
+      }
+      
+      .storage-info {
+        font-size: 0.95rem;
+        color: #495057;
+      }
+      
+      .storage-na {
+        color: #6c757d;
+        font-style: italic;
+      }
+      
+      .navbar-brand {
+        font-weight: bold;
+      }
     </style>
-</head>
+  </head>
 
-<body>
+  <body>
     <!-- NAVBAR -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container">
-            <a class="navbar-brand" href="/">API MONITORING DASHBOARD</a>
-        </div>
+      <div class="container">
+        <a class="navbar-brand" href="/">API MONITORING DASHBOARD</a>
+      </div>
     </nav>
 
     <!-- CONTENU -->
     <div class="container py-4">
-        <h4 class="text-center mb-4">Liste des APIs UP</h4>
+      <h4 class="text-center mb-4">Liste des APIs UP</h4>
 
-        {% if up_apis %}
-            <div class="api-list">
-                {% for api in up_apis %}
-                    <div class="api-item">
-                        <!-- Nom cliquable -->
-                        <a href="{% url 'api_detail' api.url %}" class="api-name">{{ api.name }}</a>
-
-                        <!-- Stockage -->
-                        {% if api.disk_total and api.disk_used %}
-                            <span class="storage-info">
-                                {{ api.disk_used|floatformat:2 }} Go utilisés /
-                                {{ api.disk_total|floatformat:2 }} Go total
-                            </span>
-                        {% else %}
-                            <span class="storage-na">Stockage non disponible</span>
-                        {% endif %}
-                    </div>
-                {% endfor %}
+      {% if up_apis %}
+        <div class="api-list">
+          {% for api in up_apis %}
+            <div class="api-item">
+              <!-- Nom cliquable -->
+              {% if api.id %}
+                <a href="{% url 'api_detail' api.id %}">{{ api.name }}</a>
+              {% else %}
+                {{ api.name }}
+              {% endif %}
+              <!-- Stockage -->
+              {% if api.disk_total and api.disk_used %}
+                <span class="storage-info">
+                  {{ api.disk_used|floatformat:2 }} Go utilisés /
+                  {{ api.disk_total|floatformat:2 }} Go total
+                </span>
+              {% else %}
+                <span class="storage-na">Stockage non disponible</span>
+              {% endif %}
             </div>
-        {% else %}
-            <p class="text-center text-danger fw-bold mt-4">Aucune API UP actuellement.</p>
-        {% endif %}
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-center text-danger fw-bold mt-4">Aucune API UP actuellement.</p>
+      {% endif %}
     </div>
 
     <script src="{% static 'dashboard/js/bootstrap.bundle.min.js' %}"></script>
-</body>
+  </body>
 </html>

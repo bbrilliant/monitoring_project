@@ -90,8 +90,8 @@ def dashboard(request):
 # --- Vue des détails d'une API ---
 # Exemple dans views.py
 
-def api_detail(request, api_url):
-    api = get_object_or_404(MonitoredAPI, url=api_url)
+def api_detail(request, api_id):
+    api = get_object_or_404(MonitoredAPI, id=api_id)
     api_info = check_api_health(api.url)
 
     # Conversion en Go et ajout de l'espace utilisé
@@ -110,12 +110,12 @@ def api_detail(request, api_url):
     return render(request, "dashboard/api_detail.html", context)
 
 
+
 # --- Vue des APIs UP ---
 def api_up_list(request):
     apis = MonitoredAPI.objects.all()
     api_data = []
 
-    # Threads pour accélérer
     with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
         future_to_api = {executor.submit(check_api_health, api.url): api for api in apis}
         for future in concurrent.futures.as_completed(future_to_api):
@@ -124,6 +124,7 @@ def api_up_list(request):
                 result = future.result()
                 if result["status"] == "UP":
                     api_data.append({
+                        "id": api.id,  # ✅ ajouté
                         "name": api.name,
                         "url": api.url,
                         "disk_total": round(result["disk_total"] / (1024 ** 3), 2),

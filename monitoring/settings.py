@@ -31,6 +31,7 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -129,3 +130,43 @@ SECURE_CROSS_ORIGIN_OPENER_POLICY=None
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+JAZZMIN_SETTINGS = {
+    "site_title": "API Monitor Admin",
+    "site_header": "API Monitoring Dashboard",
+    "site_brand": "API Monitor",
+    "welcome_sign": "Bienvenue dans le panneau de supervision",
+    "copyright": "ATOS MEDA TOGO © 2025",
+
+    # Icônes (FontAwesome)
+    "icons": {
+        "monitor.Api": "fas fa-server",
+    },
+
+    # Menu principal
+    "order_with_respect_to": ["monitor.Api"],
+    "show_ui_builder": False,
+    "topmenu_links": [
+        {"name": "Dashboard", "url": "/", "permissions": ["auth.view_user"]},
+        {"name": "APIs UP", "url": "/up-list/", "permissions": ["auth.view_user"]},
+        {"app": "monitor"},
+    ],
+}
+
+# --- REDIS CACHE CONFIGURATION ---
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",  # DB Redis 1 (par convention)
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "COMPRESSOR": "django_redis.compressors.zlib.ZlibCompressor",
+        },
+        "TIMEOUT": 300,  # 5 minutes par défaut
+    }
+}
+
+# Optionnel : utiliser Redis aussi pour les sessions Django
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+SESSION_CACHE_ALIAS = "default"
+
