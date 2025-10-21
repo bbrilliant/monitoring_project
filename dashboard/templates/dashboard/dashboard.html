@@ -111,7 +111,7 @@
       //chaque matin a 8h00 envoyer un email de rapport
       function sendDailyReport() {
         const now = new Date();
-        if (now.getHours() === 16 && now.getMinutes() === 07) {
+        if (now.getHours() === 09 && now.getMinutes() === 00) {
           fetch('/send_daily_report/')
             .then(response => {
               if (response.ok) {
@@ -123,7 +123,7 @@
             .catch(error => console.error('Erreur réseau :', error));
         }
       }
-      setInterval(sendDailyReport, 30000); // Vérifier toutes les 24 heures  
+      setInterval(sendDailyReport, 86400000); // Vérifier toutes les 24 heures
 
     </script>
   </body>
