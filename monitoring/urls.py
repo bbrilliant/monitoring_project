@@ -7,4 +7,5 @@ urlpatterns = [
     path("", views.dashboard, name="dashboard"),
     path("api/<int:api_id>/", views.api_detail, name="api_detail"),  # ✅ correction
     path("apis/up/", views.api_up_list, name="api_up_list"),
+    path("send_daily_report/", views.send_daily_report, name="send_daily_report"),
 ]
