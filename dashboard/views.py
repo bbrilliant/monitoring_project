@@ -6,10 +6,10 @@ from django.shortcuts import render, get_object_or_404
 from .models import MonitoredAPI
 from django.core.mail import send_mail
 from django.conf import settings
-from .services import check_api_health
+from django.core.cache import cache
 
 # --- Fonction utilitaire ---
-""" def check_api_health(api_url):
+def check_api_health(api_url):
     try:
         response = requests.get(api_url, timeout=5, verify=False)
 
@@ -47,7 +47,8 @@ from .services import check_api_health
             "disk_status": "N/A",
             "disk_total": 0,
             "disk_free": 0
-        } """
+        }
+  
 
 # --- Vue principale : dashboard ---
 def dashboard(request):
