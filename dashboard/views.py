@@ -177,7 +177,8 @@ def send_daily_report(request):
     subject = "Rapport quotidien des APIs"
     message = "Voici le statut quotidien des APIs supervisées:\n\n"
     for api in api_data:
-        message += f"- {api['name']} ({api['url']}): {api['status']}\n"
+        if api['status'] == 'DOWN':
+            message += f"- {api['name']} ({api['url']}): {api['status']}\n\n"
 
     send_mail(
         subject,
