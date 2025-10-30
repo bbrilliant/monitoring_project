@@ -184,7 +184,7 @@ def send_daily_report(request):
         subject,
         message,
         settings.DEFAULT_FROM_EMAIL,
-        ['bamegnaglo@gmail.com', 'serge-michel.doman@atos.net'],
+        ['bamegnaglo@gmail.com','bright.amegnaglo@atos.net'],
         fail_silently=True,
     )
 

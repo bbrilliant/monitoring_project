@@ -1,8 +1,11 @@
 version: '3.9'
 
 services:
-  web:
-    build: .
+  # --- Service principal Django ---
+  django_app:
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: django_app
     command: python manage.py runserver 0.0.0.0:8001
     volumes:
@@ -10,10 +13,57 @@ services:
     ports:
       - "8001:8001"
     depends_on:
-      - redis
+      redis_cache:
+        condition: service_healthy
+    environment:
+      - DJANGO_SETTINGS_MODULE=monitoring.settings
+      - CELERY_BROKER_URL=redis://redis_cache:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis_cache:6379/0
 
-  redis:
+  # --- Redis (Broker + Cache) ---
+  redis_cache:
     image: redis:7
     container_name: redis_cache
     ports:
-      - "6380:6379"
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # --- Worker Celery ---
+  celery_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: celery_worker
+    command: ["/wait_for_redis.sh", "redis_cache", "celery", "-A", "monitoring", "worker", "-l", "info"]
+    volumes:
+      - .:/app
+    depends_on:
+      redis_cache:
+        condition: service_healthy
+    environment:
+      - DJANGO_SETTINGS_MODULE=monitoring.settings
+      - CELERY_BROKER_URL=redis://redis_cache:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis_cache:6379/0
+    restart: always
+
+  # --- Planificateur Celery Beat ---
+  celery_beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: celery_beat
+    command: ["/wait_for_redis.sh", "redis_cache", "celery", "-A", "monitoring", "beat", "-l", "info"]
+    volumes:
+      - .:/app
+    depends_on:
+      redis_cache:
+        condition: service_healthy
+    environment:
+      - DJANGO_SETTINGS_MODULE=monitoring.settings
+      - CELERY_BROKER_URL=redis://redis_cache:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis_cache:6379/0
+    restart: always

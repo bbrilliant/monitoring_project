@@ -9,11 +9,14 @@ click-didyoumean==0.3.1
 click-plugins==1.1.1.2
 click-repl==0.3.0
 colorama==0.4.6
+cron_descriptor==2.0.6
 Django==5.2.7
-django-crontab==0.7.1
+django-celery-beat==2.8.1
 django-environ==0.12.0
 django-jazzmin==3.0.1
 django-redis==6.0.0
+django-timezone-field==7.1
+grepy==0.2.0
 idna==3.10
 kombu==5.5.4
 packaging==25.0
@@ -23,6 +26,7 @@ redis==6.4.0
 requests==2.32.5
 six==1.17.0
 sqlparse==0.5.3
+typing_extensions==4.15.0
 tzdata==2025.2
 urllib3==2.5.0
 utils==1.0.2

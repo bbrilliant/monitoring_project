@@ -45,7 +45,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'dashboard'
+    'dashboard',
+    'django_celery_beat',
 ]
 
 MIDDLEWARE = [
@@ -126,6 +127,8 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
 import os
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),  # si tu veux un dossier "static/" global
@@ -160,16 +163,17 @@ JAZZMIN_SETTINGS = {
     ],
 }
 
+REDIS_HOST = "redis_cache"
+REDIS_PORT = 6380
 # --- REDIS CACHE CONFIGURATION ---
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6380/1",  # DB Redis 1 (par convention)
+        "LOCATION": f"redis://{REDIS_HOST}:{REDIS_PORT}/1",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            "COMPRESSOR": "django_redis.compressors.zlib.ZlibCompressor",
         },
-        "TIMEOUT": 300,  # 5 minutes par défaut
+        "KEY_PREFIX": "monitoring"
     }
 }
 
@@ -178,7 +182,7 @@ SESSION_ENGINE = "django.contrib.sessions.backends.cache"
 SESSION_CACHE_ALIAS = "default"
 
 
-EMAIL_BACKEND = env('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
+EMAIL_BACKEND = env('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
 EMAIL_HOST = env('EMAIL_HOST', default='smtp.gmail.com')
 EMAIL_PORT = env.int('EMAIL_PORT', default=587)
 EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', default=True)
@@ -186,3 +190,10 @@ EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='noreply.atos.dev@gmail.com')
 EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='fgdasnfvnitrlaiy')
 DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='API Monitor - Dashboard <noreply.atos.dev@gmail.com>')
 
+
+CELERY_BROKER_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}/0"
+CELERY_RESULT_BACKEND = f"redis://{REDIS_HOST}:{REDIS_PORT}/0"
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'UTC'

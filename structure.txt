@@ -1,0 +1,83 @@
+|   .env
+|   .gitignore
+|   db.sqlite3
+|   docker-compose.yml
+|   dockerfile
+|   manage.py
+|   requirements.txt
+|   structure.txt
+|   
++---.vscode
+|       settings.json
+|       
++---dashboard
+|   |   admin.py
+|   |   apps.py
+|   |   models.py
+|   |   tasks.py
+|   |   tests.py
+|   |   views.py
+|   |   __init__.py
+|   |   
+|   +---migrations
+|   |   |   0001_initial.py
+|   |   |   0002_monitoredapi_last_check_monitoredapi_status.py
+|   |   |   0003_remove_monitoredapi_last_check_and_more.py
+|   |   |   0004_alter_monitoredapi_id.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           0001_initial.cpython-313.pyc
+|   |           0002_monitoredapi_last_check_monitoredapi_status.cpython-313.pyc
+|   |           0003_remove_monitoredapi_last_check_and_more.cpython-313.pyc
+|   |           0004_alter_monitoredapi_id.cpython-313.pyc
+|   |           __init__.cpython-313.pyc
+|   |           
+|   +---static
+|   |   \---dashboard
+|   |       +---css
+|   |       |       bootstrap-icons.css
+|   |       |       bootstrap.min.css
+|   |       |       
+|   |       +---fonts
+|   |       |       bootstrap-icons.woff
+|   |       |       bootstrap-icons.woff2
+|   |       |       
+|   |       \---js
+|   |               bootstrap.bundle.min.js
+|   |               chart.umd.js
+|   |               chart.umd.min.js
+|   |               
+|   +---templates
+|   |   \---dashboard
+|   |           api_detail.html
+|   |           api_up_list.html
+|   |           dashboard.html
+|   |           
+|   \---__pycache__
+|           admin.cpython-313.pyc
+|           apps.cpython-313.pyc
+|           models.cpython-313.pyc
+|           services.cpython-313.pyc
+|           views.cpython-313.pyc
+|           __init__.cpython-313.pyc
+|           
++---monitoring
+|   |   asgi.py
+|   |   celery.py
+|   |   settings.py
+|   |   urls.py
+|   |   wsgi.py
+|   |   __init__.py
+|   |   
+|   \---__pycache__
+|           celery.cpython-313.pyc
+|           settings.cpython-313.pyc
+|           urls.cpython-313.pyc
+|           wsgi.cpython-313.pyc
+|           __init__.cpython-313.pyc
+|           
++---static
++---staticfiles
+
+            
